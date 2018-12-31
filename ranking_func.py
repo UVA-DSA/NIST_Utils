@@ -1,6 +1,6 @@
 def rank(scores):
     srt = sorted(scores,key=lambda x: x[1], reverse=True)
-    return [i[0] for i in srt]
+    return [i[0] for i in srt],[i[1] for i in srt]
 	
 def nDCG(rank,gt,group,num):
     from numpy import log2

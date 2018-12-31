@@ -6,8 +6,13 @@ import re
 from py_trees.blackboard import Blackboard
 import ConceptExtract as CE
 import time
+from ranking_func import rank
 
 # dummy leaves
+class dummy(py_trees.behaviour.Behaviour):
+    def __init__(self, name):
+        super(dummy, self).__init__(name)
+
 class PROTOCOLi_Check(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'PROTOCOLi_Check'):
         super(PROTOCOLi_Check, self).__init__(name)
@@ -16,13 +21,19 @@ class PROTOCOLi_Action(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'PROTOCOLi_Action'):
         super(PROTOCOLi_Action, self).__init__(name)
         
-class ProtocolSelector(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'ProtocolSelector'):
-        super(ProtocolSelector, self).__init__(name)
 # action leaves
 class InformationGathering(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'InformationGathering'):
+    def __init__(self, name = 'InformationGathering',\
+    slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
+    vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
+    exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
+    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", inC = None):
         super(InformationGathering, self).__init__(name)
+        self.slist = slist
+        self.vlist = vlist
+        self.exlist = exlist
+        self.intlist= intlist
+        self.inC = inC
         
     def setup(self, unused_timeout = 15):
         '''
@@ -35,37 +46,155 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         self.ce2 = CE.ConceptExtractor("Concept_List_2.csv")
         self.ce2.StatusInit()
         '''
+        vcl = pd.read_csv(self.exlist)
         blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("/Users/sileshu/Desktop/BT/concept_list(s&s).csv")
-        self.ce.StatusInit()
-        blackboard.Status = self.ce.Status
+        self.sce = CE.ConceptExtractor(self.slist)
+        self.sce.StatusInit()
+        for item in vcl:
+            self.sce.SpecificInit(item)
+        self.vce = CE.ConceptExtractor(self.vlist)
+        #self.vce.StatusInit()
+        self.ice = CE.ConceptExtractor(self.intlist)
+        self.ice.StatusInit()
+        if self.inC:
+            self.vce.ConceptWrapper(self.inC)
+        blackboard.Signs = self.sce.Status
+        blackboard.Vitals = self.vce.Status
+        blackboard.Inters = self.ice.Status
         blackboard.ConcLog = []
+        return True
+    
+    def Vital2Symptom(self):
+        '''
+        Pulse-85  tachy > 100 extreme tachy >150 bradicardia <= 50
+        Resp-16  8 - 24 fast slow normal
+        BP-164/101  hyper age + 100 hypo < 70 normal mbp =  (sbp + 2*dbp)/3 
+        GCS-15 decreased mental status <= 14
+        Glucose-101  hyper >300 hypo <60
+        SPO2-100 94 - 99 
+        Pain-9 pain severity
+        '''
+        # Pulse to bradycardia or tachycardia
+        if len(self.vce.vtLog['Pulse']) > 0:
+            for v in self.vce.vtLog['Pulse']:
+                pr = int(v)
+                if pr > 100:
+                    self.sce.Status['tachycardia'] = CE.PatientStatus('tachycardia',True,str(pr),'Pulse')
+                    self.sce.Status['tachycardia'].score = 1000.
+                elif pr <= 50:
+                    self.sce.Status['bradycardia'] = CE.PatientStatus('bradycardia',True,str(pr),'Pulse')
+                    self.sce.Status['bradycardia'].score = 1000.
+        # Resp rate symptoms
+        if len(self.vce.vtLog['Resp']) > 0:
+            for v in self.vce.vtLog['Resp']:
+                rr = int(v)
+                if rr > 24:
+                    self.sce.Status['tachypnea'] = CE.PatientStatus('tachypnea',True,str(rr),'Resp')
+                    self.sce.Status['tachypnea'].score = 1000.
+                elif rr < 8:
+                    self.sce.Status['bradypnea'] = CE.PatientStatus('bradypnea',True,str(rr),'Resp')
+                    self.sce.Status['bradypnea'].score = 1000.
+                
+        # blood pressure symptoms
+        if len(self.vce.vtLog['BP']) > 0:
+            for v in self.vce.vtLog['BP']:
+                if '/' not in v:
+                    continue
+                bp = [int(n) for n in v.strip().split('/')]
+                mbp = (bp[0] + 2 * bp[1])/3
+                if bp[0] > 140 and bp[1] > 90:
+                    self.sce.Status['hypertension'] = CE.PatientStatus('hypertension',True,str(bp[0]),'BP')
+                    self.sce.Status['hypertension'].score = 1000.
+                elif mbp < 70:
+                    self.sce.Status['hypotension'] = CE.PatientStatus('hypotension',True,str(mbp),'BP')
+                    self.sce.Status['hypotension'].score = 1000.
+        
+        # GCS symptoms
+        if len(self.vce.vtLog['GCS']) > 0:
+            for v in self.vce.vtLog['GCS']:
+                gcs = int(v)
+                if gcs < 15:
+                    self.sce.Status['decreased mental status'] = CE.PatientStatus('decreased mental status',True,str(gcs),'GCS')
+                    self.sce.Status['decreased mental status'].score = 1000.
+                
+        # glucose symptoms
+        if len(self.vce.vtLog['Glucose']) > 0:
+            for v in self.vce.vtLog['Pulse']:
+                glu = int(v)
+                if glu > 300:
+                    self.sce.Status['hyperglycemia'] = CE.PatientStatus('hyperglycemia',True,str(glu),'Glucose')
+                    self.sce.Status['hyperglycemia'].score = 1000.
+                elif glu < 60:
+                    self.sce.Status['hypoglycemia'] = CE.PatientStatus('hypoglycemia',True,str(glu),'Glucose')
+                    self.sce.Status['hypoglycemia'].score = 1000.
+                
+        # spo2 symptoms
+        if len(self.vce.vtLog['SPO2']) > 0:
+            for v in self.vce.vtLog['SPO2']:
+                spo2 = int(v)
+                if spo2 < 94:
+                    self.sce.Status['hypoxemia'] = CE.PatientStatus('hypoxemia',True,str(spo2),'SPO2')
+                    self.sce.Status['hypoxemia'].score = 1000.
+                
+        # pain
+        if len(self.vce.vtLog['Pain']) > 0:
+            for v in self.vce.vtLog['Pain']:
+                ps = int(v)
+                self.sce.Status['pain severity'] = CE.PatientStatus('pain severity',True,str(ps),'Pain')
+                self.sce.Status['pain severity'].score = 1000.
+        
+        # EKG symptoms
+        if len(self.vce.vtLog['EKG']) > 0:
+            for v in self.vce.vtLog['Pulse']:
+                ekg = v
+                if "Sinus_Arrhythmia" in ekg:
+                    self.sce.Status['dysrhythmia'] = CE.PatientStatus('dysrhythmia',True,ekg,'EKG')
+                    self.sce.Status['dysrhythmia'].score = 1000.
+                else:
+                    self.sce.Status['dysrhythmia'] = CE.PatientStatus('dysrhythmia',False,ekg,'EKG')
+                    self.sce.Status['dysrhythmia'].score = 1000.
+                if "_Bradycardia" in ekg:
+                    self.sce.Status['bradycardia'] = CE.PatientStatus('bradycardia',True,ekg,'EKG')
+                    self.sce.Status['bradycardia'].score = 1000.
+                if "_Tachycardia" in ekg:
+                    self.sce.Status['tachycardia'] = CE.PatientStatus('tachycardia',True,ekg,'EKG')
+                    self.sce.Status['tachycardia'].score = 1000.
+  
         return True
         
     def update(self):
         blackboard = Blackboard()
-        '''
-        self.ce1.ConceptExtract(blackboard.text)
-        blackboard.concepts = self.ce1.concepts
-        self.ce1.FirstExtract(blackboard.text, blackboard.tick_num)
-        blackboard.status1 = self.ce1.Status
-        self.ce2.concepts = blackboard.concepts
-        self.ce2.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.status2 = self.ce2.Status
-        self.ce1.DisplayStatus()
-        self.ce2.DisplayStatus()
-        '''
-        self.ce.ConceptExtract(blackboard.text)
-        blackboard.concepts = self.ce.concepts
-        self.ce.FirstExtract(blackboard.text, blackboard.tick_num)
-        blackboard.Status = self.ce.Status
-        self.ce.DisplayStatus()
-        blackboard.ConcLog += self.ce.Log
+        self.sce.ConceptExtract(blackboard.text)
+        blackboard.concepts = self.sce.concepts
+        blackboard.confi = self.sce.scores
+        self.sce.FirstExtract(blackboard.text, blackboard.tick_num)
+        self.Vital2Symptom()
+        blackboard.Signs = self.sce.Status
+        #self.vce.concepts = blackboard.concepts
+        #self.vce.scores = self.sce.scores
+        #self.vce.FirstExtract(blackboard.text, blackboard.tick_num)
+        blackboard.Vitals = self.vce.Status
+        #self.sce.DisplayStatus()
+        self.ice.concepts = blackboard.concepts
+        self.ice.scores = self.sce.scores
+        self.ice.FirstExtract(blackboard.text, blackboard.tick_num)
+        blackboard.Inters = self.ice.Status
+        self.ice.DisplayStatus()
+        blackboard.ConcLog += self.sce.Log + self.vce.Log
         return py_trees.Status.SUCCESS
         
-class Vectorize(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Vectorize'):
-        super(Vectorize, self).__init__(name)
+class IG(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'IG',\
+    slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
+    vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
+    exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
+    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", inC = None):
+        super(IG, self).__init__(name)
+        self.slist = slist
+        self.vlist = vlist
+        self.exlist = exlist
+        self.intlist= intlist
+        self.inC = inC
         
     def setup(self, unused_timeout = 15):
         '''
@@ -78,72 +207,228 @@ class Vectorize(py_trees.behaviour.Behaviour):
         self.ce2 = CE.ConceptExtractor("Concept_List_2.csv")
         self.ce2.StatusInit()
         '''
+        vcl = pd.read_csv(self.exlist)
+        blackboard = Blackboard()
+        self.sce = CE.CEWithoutMM(self.slist)
+        self.sce.StatusInit()
+        for item in vcl:
+            self.sce.SpecificInit(item)
+        self.vce = CE.ConceptExtractor(self.vlist)
+        #self.vce.StatusInit()
+        self.ice = CE.ConceptExtractor(self.intlist)
+        self.ice.StatusInit()
+        if self.inC:
+            self.vce.ConceptWrapper(self.inC)
+        blackboard.Signs = self.sce.Status
+        blackboard.Vitals = self.vce.Status
+        blackboard.Inters = self.ice.Status
+        blackboard.ConcLog = []
+        return True
+    
+    def Vital2Symptom(self):
+        '''
+        Pulse-85  tachy > 100 extreme tachy >150 bradicardia <= 50
+        Resp-16  8 - 24 fast slow normal
+        BP-164/101  hyper age + 100 hypo < 70 normal mbp =  (sbp + 2*dbp)/3 
+        GCS-15 decreased mental status <= 14
+        Glucose-101  hyper >300 hypo <60
+        SPO2-100 94 - 99 
+        Pain-9 pain severity
+        '''
+        # Pulse to bradycardia or tachycardia
+        if len(self.vce.vtLog['Pulse']) > 0:
+            for v in self.vce.vtLog['Pulse']:
+                pr = int(v)
+                if pr > 100:
+                    self.sce.Status['tachycardia'] = CE.PatientStatus('tachycardia',True,str(pr),'Pulse')
+                    self.sce.Status['tachycardia'].score = 1000.
+                elif pr <= 50:
+                    self.sce.Status['bradycardia'] = CE.PatientStatus('bradycardia',True,str(pr),'Pulse')
+                    self.sce.Status['bradycardia'].score = 1000.
+        # Resp rate symptoms
+        if len(self.vce.vtLog['Resp']) > 0:
+            for v in self.vce.vtLog['Resp']:
+                rr = int(v)
+                if rr > 24:
+                    self.sce.Status['tachypnea'] = CE.PatientStatus('tachypnea',True,str(rr),'Resp')
+                    self.sce.Status['tachypnea'].score = 1000.
+                elif rr < 8:
+                    self.sce.Status['bradypnea'] = CE.PatientStatus('bradypnea',True,str(rr),'Resp')
+                    self.sce.Status['bradypnea'].score = 1000.
+                
+        # blood pressure symptoms
+        if len(self.vce.vtLog['BP']) > 0:
+            for v in self.vce.vtLog['BP']:
+                if '/' not in v:
+                    continue
+                bp = [int(n) for n in v.strip().split('/')]
+                mbp = (bp[0] + 2 * bp[1])/3
+                if bp[0] > 140 and bp[1] > 90:
+                    self.sce.Status['hypertension'] = CE.PatientStatus('hypertension',True,str(bp[0]),'BP')
+                    self.sce.Status['hypertension'].score = 1000.
+                elif mbp < 70:
+                    self.sce.Status['hypotension'] = CE.PatientStatus('hypotension',True,str(mbp),'BP')
+                    self.sce.Status['hypotension'].score = 1000.
+        
+        # GCS symptoms
+        if len(self.vce.vtLog['GCS']) > 0:
+            for v in self.vce.vtLog['GCS']:
+                gcs = int(v)
+                if gcs < 15:
+                    self.sce.Status['decreased mental status'] = CE.PatientStatus('decreased mental status',True,str(gcs),'GCS')
+                    self.sce.Status['decreased mental status'].score = 1000.
+                
+        # glucose symptoms
+        if len(self.vce.vtLog['Glucose']) > 0:
+            for v in self.vce.vtLog['Pulse']:
+                glu = int(v)
+                if glu > 300:
+                    self.sce.Status['hyperglycemia'] = CE.PatientStatus('hyperglycemia',True,str(glu),'Glucose')
+                    self.sce.Status['hyperglycemia'].score = 1000.
+                elif glu < 60:
+                    self.sce.Status['hypoglycemia'] = CE.PatientStatus('hypoglycemia',True,str(glu),'Glucose')
+                    self.sce.Status['hypoglycemia'].score = 1000.
+                
+        # spo2 symptoms
+        if len(self.vce.vtLog['SPO2']) > 0:
+            for v in self.vce.vtLog['SPO2']:
+                spo2 = int(v)
+                if spo2 < 94:
+                    self.sce.Status['hypoxemia'] = CE.PatientStatus('hypoxemia',True,str(spo2),'SPO2')
+                    self.sce.Status['hypoxemia'].score = 1000.
+                
+        # pain
+        if len(self.vce.vtLog['Pain']) > 0:
+            for v in self.vce.vtLog['Pain']:
+                ps = int(v)
+                self.sce.Status['pain severity'] = CE.PatientStatus('pain severity',True,str(ps),'Pain')
+                self.sce.Status['pain severity'].score = 1000.
+        
+        # EKG symptoms
+        if len(self.vce.vtLog['EKG']) > 0:
+            for v in self.vce.vtLog['Pulse']:
+                ekg = v
+                if "Sinus_Arrhythmia" in ekg:
+                    self.sce.Status['dysrhythmia'] = CE.PatientStatus('dysrhythmia',True,ekg,'EKG')
+                    self.sce.Status['dysrhythmia'].score = 1000.
+                else:
+                    self.sce.Status['dysrhythmia'] = CE.PatientStatus('dysrhythmia',False,ekg,'EKG')
+                    self.sce.Status['dysrhythmia'].score = 1000.
+                if "_Bradycardia" in ekg:
+                    self.sce.Status['bradycardia'] = CE.PatientStatus('bradycardia',True,ekg,'EKG')
+                    self.sce.Status['bradycardia'].score = 1000.
+                if "_Tachycardia" in ekg:
+                    self.sce.Status['tachycardia'] = CE.PatientStatus('tachycardia',True,ekg,'EKG')
+                    self.sce.Status['tachycardia'].score = 1000.
+  
+        return True
+        
+    def update(self):
+        blackboard = Blackboard()
+        #self.ice.ConceptExtract(blackboard.text)
+        #blackboard.concepts = self.ice.concepts
+        #blackboard.confi = self.sce.scores
+        self.sce.CE(blackboard.text, blackboard.tick_num)
+        self.Vital2Symptom()
+        blackboard.Signs = self.sce.Status
+        #self.vce.concepts = blackboard.concepts
+        #self.vce.scores = self.sce.scores
+        #self.vce.FirstExtract(blackboard.text, blackboard.tick_num)
+        blackboard.Vitals = self.vce.Status
+        #self.sce.DisplayStatus()
+        #self.ice.concepts = blackboard.concepts
+        #self.ice.scores = self.sce.scores
+        #self.ice.FirstExtract(blackboard.text, blackboard.tick_num)
+        #blackboard.Inters = self.ice.Status
+        #self.ice.DisplayStatus()
+        #blackboard.ConcLog += self.sce.Log + self.vce.Log
+        #self.sce.DisplayStatus()
+        return py_trees.Status.SUCCESS
+        
+        
+               
+class Vectorize(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Vectorize', protocols = '/Users/sileshu/Desktop/BT/ODEMSA_Protocols_weighted.xlsx'):
+        super(Vectorize, self).__init__(name)
+        self.protocols = protocols
+        
+    def setup(self, unused_timeout = 15):
         blackboard = Blackboard()
         PC = dict()
-        '''
-        PC = {
-        'BLSCPR':['breath','pulse'],
-        'BleedingControl':['bleed'],
-        'Burn':['burn'],
-        'ChestPain':['pain','12-lead ecg','pain region','mi','pain quality'],
-        'GeneralTraumaManagement':['pain severity','pain','open chest wound','wound','contusion','evisceration','abrasion'],
-        'RespiratoryDistress':['spo2','breath','etco2']
-        }
-        '''
-        pro_df = pd.read_excel('/Users/sileshu/Desktop/BT/ODEMSA_Protocols.xlsx')
+        pro_df = pd.read_excel(self.protocols)
         for line in pro_df.iterrows():
-            line_ss = [i.strip().lower() for i in line[1]['Signs&Symptoms'].split(';')]
+            line_ss = [(i.strip().lower()[:-1],i.strip().lower()[-1]) for i in line[1]['Signs&Symptoms'].split(';')]
+            if not pd.isnull(line[1]['Possible signs&symptoms additions']):
+                line_ssr = [(i.strip().lower()[:-1],i.strip().lower()[-1]) for i in line[1]['Possible signs&symptoms additions'].split(';')]
             name = line[1]['Protocol']
-            PC[name] = line_ss
+            PC[name] = line_ss + line_ssr
         self.PV = dict()
         for item in PC:
             vec = list()
-            for i in blackboard.Status:
-                vec.append(float(i in PC[item]))
+            su = 0.
+            for i in blackboard.Signs:
+                res = 0.
+                for j in PC[item]:
+                    if i == j[0]:
+                        res = 8.**int(j[1])
+                        break;
+                su += res
+                vec.append(res)
+            for i in xrange(len(vec)):
+                vec[i] = vec[i]
             self.PV[item] = vec
+        blackboard.PV = self.PV
         return True
         
     
     def update(self):
-        blackboard = Blackboard()
-        '''
-        self.ce1.ConceptExtract(blackboard.text)
-        blackboard.concepts = self.ce1.concepts
-        self.ce1.FirstExtract(blackboard.text, blackboard.tick_num)
-        blackboard.status1 = self.ce1.Status
-        self.ce2.concepts = blackboard.concepts
-        self.ce2.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.status2 = self.ce2.Status
-        self.ce1.DisplayStatus()
-        self.ce2.DisplayStatus()
-        '''
-        
+        blackboard = Blackboard()  
         # mm confidence encoding
         TV = []
-        for item in blackboard.Status:
-            if blackboard.Status[item].binary:
-                TV.append(blackboard.Status[item].score)
+        for item in blackboard.Signs:
+            if blackboard.Signs[item].binary:
+                TV.append(blackboard.Signs[item].score/1000.)
+            else:
+                TV.append(0.)
+        #TV = [blackboard.Status[item].score/1000. for item in blackboard.Status]
         
-        #TV = [blackboard.Status[item].score for item in blackboard.Status]
-        '''
         # one-hot encoding
-        TV = [int(blackboard.Status[item].binary) for item in blackboard.Status]
-        '''
+        #TV = [float(blackboard.Signs[item].binary) for item in blackboard.Signs]
+        blackboard.TV = TV
         maxsim = 0
         result = ''
         blackboard.ranking = []
         for key in self.PV:
             sim = 1 - spatial.distance.cosine(TV,self.PV[key])
-            print key,sim
             blackboard.ranking.append((key,sim))
             if sim > maxsim:
                 maxsim = sim
                 result = key
         blackboard.protocol = result
+        blackboard.candi,blackboard.pos = rank(blackboard.ranking)[0],rank(blackboard.ranking)[1]
         return py_trees.Status.SUCCESS
 
+class ProtocolSelector(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'ProtocolSelector'):
+        super(ProtocolSelector, self).__init__(name)
     
-
+    def setup(self, unused_timeout = 15):
+        blackboard = Blackboard()
+        blackboard.protocol_flag = dict()
+        blackboard.feedback = dict()
+        for i in blackboard.PV:
+            blackboard.protocol_flag[i] = (False,0.)
+        for i in blackboard.Inters:
+            blackboard.feedback[i] = 0.
+        return True
+    
+    def update(self):
+        blackboard = Blackboard()
+        num = sum(blackboard.pos[:3])
+        for idx,item in enumerate(blackboard.candi):
+            if idx < 3:
+                blackboard.protocol_flag[item] = (True,blackboard.pos[idx]/num)
+        return py_trees.Status.SUCCESS
 
 class TextCollection(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'TextCollection'):
@@ -182,863 +467,413 @@ class TextCollection(py_trees.behaviour.Behaviour):
         blackboard.text = self.sent_text
         '''
         return py_trees.Status.SUCCESS
-
-		
-class Arbiter(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Arbiter'):
-        super(Arbiter, self).__init__(name)
+ 
+# protocols' checker
+class ChestPain_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'ChestPain_Checker'):
+        super(ChestPain_Checker, self).__init__(name)
+        self.key = 'Medical - Chest Pain - Cardiac Suspected'
     
     def update(self):
         blackboard = Blackboard()
-        c1, c2 = 0, 0
-        for item in blackboard.status1:
-            if len(blackboard.status1[item].content) > 0:
-                c1 += 1
-        for item in blackboard.status2:
-            if len(blackboard.status2[item].content) > 0:
-                c2 += 1
-        if c1 <= 2:
-            blackboard.action = "Keep Performing Vital Assessments"
-            blackboard.protocol = "Universal Patient Care"
-        elif c2 < 1 and c1 < 5:
-            blackboard.action = "Keep Performing SAMPLE History or Pain/Trauma Assessments"
-            blackboard.protocol = "Universal Patient Care"
-        
-        return py_trees.Status.SUCCESS
-    
-
-# protocols' condition
-class BLSCPR_Condition(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'BLSCPR_Condition'):
-        super(BLSCPR_Condition, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("BLSCPR.csv")
-        self.ce.StatusInit()
-        blackboard.BLSCPR_Status = self.ce.Status
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        self.ce.concepts = blackboard.concepts
-        self.ce.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.BLSCPR_Status = self.ce.Status
-        if blackboard.status1['pulse'].binary == False and \
-        blackboard.status1['breath'].binary == False:
-            blackboard.Protocol = "BLS CPR"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-        
-class Bleeding_Control_Condition(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Bleeding_Control_Condition'):
-        super(Bleeding_Control_Condition, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("BleedingControl.csv")
-        self.ce.StatusInit()
-        blackboard.BC_Status = self.ce.Status
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        self.ce.concepts = blackboard.concepts
-        self.ce.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.BC_Status = self.ce.Status
-        if blackboard.status1['bleed'].binary == True:
-            blackboard.Protocol = "Bleeding Control"
+        if blackboard.protocol_flag[self.key][0]:
             return py_trees.Status.SUCCESS
         else:
             return py_trees.Status.FAILURE
 
-
-class Burn_Injury_Condition(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Burn_Injury_Condition'):
-        super(Burn_Injury_Condition, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("Burn.csv")
-        self.ce.StatusInit()
-        blackboard.Burn_Status = self.ce.Status
-        return True
+class AbdoPain_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'AbdoPain_Checker'):
+        super(AbdoPain_Checker, self).__init__(name)
+        self.key = 'Medical - Abdominal Pain'
     
     def update(self):
         blackboard = Blackboard()
-        self.ce.concepts = blackboard.concepts
-        if blackboard.fentanyl[0] > 0:
-            self.ce.SpecificInit('fentanyl')
-        if blackboard.ondansetron[0] > 0:
-            self.ce.SpecificInit('ondansetron')
-        if blackboard.ketamine[0] > 0:
-            self.ce.SpecificInit('ketamine')
-        self.ce.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.Burn_Status = self.ce.Status
-        if blackboard.status1['wound'].binary == True and blackboard.status2['burn'].binary == True:
-            blackboard.protocol = "Burn Injury"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-        
-class GeneralTraumaGuideline_Condition(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'GeneralTraumaGuideline_Condition'):
-        super(GeneralTraumaGuideline_Condition, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("GeneralTrauma.csv")
-        self.ce.StatusInit()
-        blackboard.GT_Status = self.ce.Status
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        self.ce.concepts = blackboard.concepts
-        if blackboard.fentanyl[0] > 0:
-            self.ce.SpecificInit('fentanyl')
-        if blackboard.ondansetron[0] > 0:
-            self.ce.SpecificInit('ondansetron')
-        if blackboard.ketamine[0] > 0:
-            self.ce.SpecificInit('ketamine')
-        self.ce.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.GT_Status = self.ce.Status
-        if blackboard.status1['wound'].binary == True and blackboard.status2['burn'].binary == False:
-            blackboard.protocol = "General Trauma Guideline"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-        
-class RespiratoryDistress_Condition(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'RespiratoryDistress_Condition'):
-        super(RespiratoryDistress_Condition, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("Respiratory.csv")
-        self.ce.StatusInit()
-        blackboard.Res_Status = self.ce.Status
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        self.ce.concepts = blackboard.concepts
-        self.ce.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.Res_Status = self.ce.Status
-        if blackboard.status1['breath'].binary == False:
-            blackboard.protocol = "Respiratory Distress"
-            return py_trees.Status.SUCCESS
-        if len(blackboard.status1['breath'].value) > 0:
-            if int(blackboard.status1['breath'].value) > 30 or int(blackboard.status1['breath'].value) < 10:
-                blackboard.protocol = "Respiratory Distress"
-                return py_trees.Status.SUCCESS
-        if len(blackboard.status1['spo2'].value) > 0:
-            if int(blackboard.status1['spo2'].value.replace('%','')) < 70:
-                blackboard.protocol = "Respiratory Distress"
-                return py_trees.Status.SUCCESS
-        if len(blackboard.status1['etco2'].value) >0:
-            if int(blackboard.status1['etco2'].value) > 45 or int(blackboard.status1['etco2'].value) < 35:
-                blackboard.protocol = "Respiratory Distress"
-                return py_trees.Status.SUCCESS
-        return py_trees.Status.FAILURE
-        
-class ChestPain_Condition(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'ChestPain_Condition'):
-        super(ChestPain_Condition, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.ce = CE.ConceptExtractor("ChestPain.csv")
-        self.ce.StatusInit()
-        blackboard.CP_Status = self.ce.Status
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        self.ce.concepts = blackboard.concepts
-        if blackboard.fentanyl[0] > 0:
-            self.ce.SpecificInit('fentanyl')
-        if blackboard.ondansetron[0] > 0:
-            self.ce.SpecificInit('ondansetron')
-        if blackboard.nitroglycerin[0] > 0:
-            self.ce.SpecificInit('nitroglycerin')
-        self.ce.SecondExtract(blackboard.text, blackboard.tick_num)
-        blackboard.CP_Status = self.ce.Status
-        if blackboard.status1['pain'].binary == True and \
-        ('chest' in blackboard.status1['pain'].content or \
-         'chest' in blackboard.status2['pain region'].content or\
-         'chest' in blackboard.status2['pain region'].value):
-            blackboard.protocol = "Chest Pain"
+        if blackboard.protocol_flag[self.key][0]:
             return py_trees.Status.SUCCESS
         else:
             return py_trees.Status.FAILURE
             
-# ChestPain
-class ECG(py_trees.behaviour.Behaviour):
-    def __init__(self, name = '12-Lead ECG'):
-        super(ECG, self).__init__(name)
+class Behavioral_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Behavioral_Checker'):
+        super(Behavioral_Checker, self).__init__(name)
+        self.key = 'General - Behavioral/Patient Restraint'
     
     def update(self):
         blackboard = Blackboard()
-        if blackboard.CP_Status['12-lead ecg'].binary == True:
-            return py_trees.Status.SUCCESS
-        else:
-            blackboard.action = self.name
-            return py_trees.Status.SUCCESS
-    
-class MI(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'STEMI?'):
-        super(MI, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.CP_Status['mi'].binary == True:
+        if blackboard.protocol_flag[self.key][0]:
             return py_trees.Status.SUCCESS
         else:
             return py_trees.Status.FAILURE
-    
-class Transport(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Transport'):
-        super(Transport, self).__init__(name)
+            
+class PainCtrl_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'PainCtrl_Checker'):
+        super(PainCtrl_Checker, self).__init__(name)
+        self.key = 'General - Pain Control'
     
     def update(self):
         blackboard = Blackboard()
-        blackboard.action = self.name
+        if blackboard.protocol_flag[self.key][0]:
+            return py_trees.Status.SUCCESS
+        else:
+            return py_trees.Status.FAILURE 
+            
+class Seizure_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Seizure_Checker'):
+        super(Seizure_Checker, self).__init__(name)
+        self.key = 'Medical - Seizure'
+    
+    def update(self):
+        blackboard = Blackboard()
+        if blackboard.protocol_flag[self.key][0]:
+            return py_trees.Status.SUCCESS
+        else:
+            return py_trees.Status.FAILURE
+
+class Resp_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Resp_Checker'):
+        super(Resp_Checker, self).__init__(name)
+        self.key = 'Medical - Respiratory Distress/Asthma/COPD/Croup/Reactive Airway'
+    
+    def update(self):
+        blackboard = Blackboard()
+        if blackboard.protocol_flag[self.key][0]:
+            return py_trees.Status.SUCCESS
+        else:
+            return py_trees.Status.FAILURE
+            
+class AMS_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'AMS_Checker'):
+        super(AMS_Checker, self).__init__(name)
+        self.key = 'Medical - Altered Mental Status'
+    
+    def update(self):
+        blackboard = Blackboard()
+        if blackboard.protocol_flag[self.key][0]:
+            return py_trees.Status.SUCCESS
+        else:
+            return py_trees.Status.FAILURE
+            
+class Diab_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Diab_Checker'):
+        super(Diab_Checker, self).__init__(name)
+        self.key = 'Medical - Diabetic - Hypoglycemia'
+    
+    def update(self):
+        blackboard = Blackboard()
+        if blackboard.protocol_flag[self.key][0]:
+            return py_trees.Status.SUCCESS
+        else:
+            return py_trees.Status.FAILURE       
+            
+class Overdose_Checker(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Overdose_Checker'):
+        super(Overdose_Checker, self).__init__(name)
+        self.key = 'Medical - Overdose/Poisoning - Opioid'
+    
+    def update(self):
+        blackboard = Blackboard()
+        if blackboard.protocol_flag[self.key][0]:
+            return py_trees.Status.SUCCESS
+        else:
+            return py_trees.Status.FAILURE    
+        
+# protocols
+class ChestPain(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'ChestPain'):
+        super(ChestPain, self).__init__(name)
+        self.key = 'Medical - Chest Pain - Cardiac Suspected'
+    
+    def update(self):
+        blackboard = Blackboard()
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
+            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+        if blackboard.candi[0] == self.key and blackboard.Vitals['GCS'].value == '15':
+            blackboard.feedback['aspirin'] += self.posi
+        # consider add dependency on iv
+        if blackboard.Signs['substance abuse history'].binary:
+            blackboard.feedback['midazolam'] += self.posi * blackboard.Signs['substance abuse history'].score / 1000.
+           # blackboard.feedback['diazepam'] += self.posi * blackboard.Signs['substance abuse history'].score / 1000.
+        elif blackboard.Signs['abuse of substance'].binary:
+            blackboard.feedback['midazolam'] += self.posi * blackboard.Signs['abuse of substance'].score / 1000.
+          #  blackboard.feedback['diazepam'] += self.posi * blackboard.Signs['abuse of substance'].score / 1000.
+        if 'STEMI' in blackboard.Vitals['EKG'].value and blackboard.Vitals['Pain'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) > 100:
+            blackboard.feedback['nitroglycerin'] += self.posi * blackboard.Vitals['Pain'].score / 1000. * blackboard.Vitals['BP'].score / 1000.
+        if  blackboard.Vitals['Pain'].binary and blackboard.Inters['nitroglycerin'].binary:
+          #  blackboard.feedback['morphine'] += self.posi * blackboard.Vitals['Pain'].score / 1000. * blackboard.Inters['nitroglycerin'].score / 1000.
+            blackboard.feedback['fentanyl'] += self.posi * blackboard.Vitals['Pain'].score / 1000. * blackboard.Inters['nitroglycerin'].score / 1000.
         return py_trees.Status.SUCCESS
-    
-class Aspirin(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Aspirin'):
-        super(Aspirin, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.CP_Status['aspirin'].binary == True:
-            return py_trees.Status.SUCCESS
-        else:
-            blackboard.action = self.name
-            return py_trees.Status.FAILURE
 
-class Advanced(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Advanced EMT?'):
-        super(Advanced, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.level = blackboard.level
-        return True
+CP_C = ChestPain_Checker()
+CP_A = ChestPain()
+CP = py_trees.composites.Sequence("ChestPain",children = [CP_C,CP_A])
+            
+class AbdoPain(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'AbdoPain'):
+        super(AbdoPain, self).__init__(name)
+        self.key = 'Medical - Abdominal Pain'
     
     def update(self):
         blackboard = Blackboard()
-        if self.level == "A" or self.level == "I/P":
-            blackboard.action = 'IV access'
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
             return py_trees.Status.SUCCESS
-        else:
-            print "don't have enough certification"
-            return py_trees.Status.FAILURE
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+        blackboard.feedback['normal saline'] += self.posi
+        if blackboard.Signs['nausea'].binary:
+            blackboard.feedback['ondansetron'] += self.posi * blackboard.Signs['nausea'].score / 1000.
+        elif blackboard.Signs['vomiting'].binary:
+            blackboard.feedback['ondansetron'] += self.posi * blackboard.Signs['vomiting'].score / 1000.
+        return py_trees.Status.SUCCESS
 
-class IV(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'IV access?'):
-        super(IV, self).__init__(name)
+AP_C = AbdoPain_Checker()
+AP_A = AbdoPain()
+AP = py_trees.composites.Sequence("AbdoPain",children = [AP_C,AP_A])      
+            
+class Behavioral(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Behavioral_Checker'):
+        super(Behavioral, self).__init__(name)
+        self.key = 'General - Behavioral/Patient Restraint'
     
     def update(self):
         blackboard = Blackboard()
-        if blackboard.CP_Status['iv/io/vascular access'].binary == True or\
-        blackboard.Burn_Status['iv/io/vascular access'].binary == True or\
-        blackboard.GT_Status['iv/io/vascular access'].binary == True:
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
             return py_trees.Status.SUCCESS
+        if blackboard.Signs['combative'].binary:
+            s = blackboard.Signs['combative'].score / 1000.
+            if blackboard.Signs['hypoxemia'].binary:
+                blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000. * s
+            blackboard.feedback['physical restraint'] += self.posi * s
+            if blackboard.Signs['agitation'].binary:
+                blackboard.feedback['midazolam'] += self.posi * blackboard.Signs['agitation'].score / 1000. * s
+             #   blackboard.feedback['diazepam'] += self.posi * blackboard.Signs['agitation'].score / 1000. * s
+              #  blackboard.feedback['geodon'] += self.posi * blackboard.Signs['agitation'].score / 1000. * s
+            blackboard.feedback['transport'] += self.posi * s  
+        elif blackboard.Signs['violent'].binary:
+            s = blackboard.Signs['violent'].score / 1000.
+            if blackboard.Signs['hypoxemia'].binary:
+                blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000. * s
+            blackboard.feedback['physical restraint'] += self.posi * s
+            if not blackboard.Signs['hypotension'].binary and blackboard.Signs['agitation'].binary:
+                blackboard.feedback['midazolam'] += self.posi * blackboard.Signs['agitation'].score / 1000. *\
+                 blackboard.Signs['hypotension'].score / 1000. * s
+              #  blackboard.feedback['diazepam'] += self.posi * blackboard.Signs['agitation'].score / 1000. * s
+            #    blackboard.feedback['geodon'] += self.posi * blackboard.Signs['agitation'].score / 1000. * s
+            blackboard.feedback['transport'] += self.posi * s
         else:
-            return py_trees.Status.FAILURE
-    
-class Nausea(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Nausea/Vommiting?'):
-        super(Nausea, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.CP_Status['nausea'].binary == True or \
-        blackboard.Burn_Status['nausea'].binary == True or \
-        blackboard.GT_Status['nausea'].binary == True:
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
+        #    blackboard.feedback['encourage patient to relax'] += self.posi
+            blackboard.feedback['transport'] += self.posi
+        return py_trees.Status.SUCCESS
 
-class ondansetron(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'ondansetron'):
-        super(ondansetron, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        blackboard.ondansetron = [0,0.]
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        # usage detection
-        if blackboard.CP_Status['ondansetron'].binary == True or\
-        blackboard.Burn_Status['ondansetron'].binary == True or\
-        blackboard.GT_Status['ondansetron'].binary == True:
-            blackboard.ondansetron[0] += 1
-            blackboard.ondansetron[1] = time.time()
-        if blackboard.ondansetron[0] == 0:
-            blackboard.action = 'ondansetron 4mg ODT'
-            return py_trees.Status.FAILURE
-        elif blackboard.ondansetron[0] == 1 and (time.time() - blackboard.ondansetron[1] > 600):
-            blackboard.action = 'ondansetron 4mg ODT'
-            return py_trees.Status.FAILURE
-        else:
-            return py_trees.Status.SUCCESS
-    
-class IP(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'I/P?'):
-        super(IP, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        self.level = blackboard.level
-        return True
-    
-    def update(self):
-        if self.level == "I/P":
-            return py_trees.Status.SUCCESS
-        else:
-            print "don't have enough certification"
-            return py_trees.Status.FAILURE
+BE_C = Behavioral_Checker()
+BE_A = Behavioral()
+BE = py_trees.composites.Sequence("Behavioral",children = [BE_C,BE_A])         
 
-    
-class Fentanyl_IV(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Fentanyl_IV'):
-        super(Fentanyl_IV, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        blackboard.fentanyl = [0,0.]
-        return True
+            
+class PainCtrl(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'PainCtrl'):
+        super(PainCtrl, self).__init__(name)
+        self.key = 'General - Pain Control'
     
     def update(self):
+        '''
+        mild pain: ps <= 5
+        moderate: ps 6,7
+        severe: ps >= 8
+        '''
         blackboard = Blackboard()
-        # fentanyl usage detection
-        if blackboard.CP_Status['fentanyl'].binary == True or\
-        blackboard.Burn_Status['fentanyl'].binary == True or\
-        blackboard.GT_Status['fentanyl'].binary == True:
-            blackboard.fentanyl[0] += 1
-            blackboard.fentanyl[1] = time.time()
-        # fentanyl usage under different conditions
-        if blackboard.fentanyl[0] == 0:
-            if len(blackboard.status1['age'].value) > 0:
-                if int(blackboard.status1['age'].value) >= 65:
-                    blackboard.action = '0.5 microgram/kg Fentanyl IV'
-                elif int(blackboard.status1['age'].value) < 65:
-                    blackboard.action = '1 microgram/kg Fentanyl IV'
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
+            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        if blackboard.Signs['pain severity'].binary:
+            s = blackboard.Signs['pain severity'].score / 1000.
+            ps = int(blackboard.Signs['pain severity'].value)
+            if ps <= 5:
+                blackboard.feedback['nitronox'] += self.posi * s
+                blackboard.feedback['acetaminophen'] += self.posi * s
+                blackboard.feedback['ibuprofen'] += self.posi * s
+            elif ps == 6 or ps == 7:
+                blackboard.feedback['toradol'] += self.posi * s
             else:
-                blackboard.action = '1 microgram/kg Fentanyl IV'
-            return py_trees.Status.FAILURE
-        elif blackboard.fentanyl[0] == 1 and (time.time() - blackboard.fentanyl[1] > 600):
-            if len(blackboard.status1['age'].value) > 0:
-                if int(blackboard.status1['age'].value) >= 65:
-                    blackboard.action = '0.5 microgram/kg Fentanyl IV'
-                elif int(blackboard.status1['age'].value) < 65:
-                    blackboard.action = '1 microgram/kg Fentanyl IV'
+                blackboard.feedback['normal saline'] += self.posi * s
+                blackboard.feedback['fentanyl'] += self.posi * s
+              #  blackboard.feedback['morphine sulfate'] += self.posi * s
+        if blackboard.Signs['nausea'].binary:
+            blackboard.feedback['ondansetron'] += self.posi * blackboard.Signs['nausea'].score / 1000.
+        elif blackboard.Signs['vomiting'].binary:
+            blackboard.feedback['ondansetron'] += self.posi * blackboard.Signs['vomiting'].score / 1000.
+        blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+        return py_trees.Status.SUCCESS
+
+PC_C = PainCtrl_Checker()
+PC_A = PainCtrl()
+PC = py_trees.composites.Sequence("PainCtrl",children = [PC_C,PC_A]) 
+            
+class Seizure(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Seizure'):
+        super(Seizure, self).__init__(name)
+        self.key = 'Medical - Seizure'
+    
+    def update(self):
+        blackboard = Blackboard()
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
+            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        blackboard.feedback['normal saline'] += self.posi
+        if not blackboard.Signs['hypotension'].binary and blackboard.Signs['seizure'].binary and blackboard.Vitals['Glucose'].value > 60:
+            s = blackboard.Signs['seizure'].score / 1000. * blackboard.Vitals['Glucose'].score / 1000. * blackboard.Signs['hypotension'].score / 1000.
+            blackboard.feedback['midazolam'] += self.posi * s
+          #  blackboard.feedback['diazepam'] += self.posi * s
+        blackboard.feedback['cardiac monitor'] += self.posi
+        # recovery position?
+        blackboard.feedback['transport'] += self.posi
+        return py_trees.Status.SUCCESS
+
+SZ_C = Seizure_Checker()
+SZ_A = Seizure()
+SZ = py_trees.composites.Sequence("Seizure",children = [SZ_C,SZ_A]) 
+
+class Resp(py_trees.behaviour.Behaviour):
+    '''
+    Acute respiratory distress syndrome:
+    sob: shortness of breath
+    rapid breathing: tachypnea
+    low bp: hypotension
+    confusion: confusion
+    '''
+    def __init__(self, name = 'Resp'):
+        super(Resp, self).__init__(name)
+        self.key = 'Medical - Respiratory Distress/Asthma/COPD/Croup/Reactive Airway'
+    
+    def update(self):
+        blackboard = Blackboard()
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
+            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        # have to do?
+       # blackboard.feedback['capnography'] += self.posi
+       # blackboard.feedback['bronchodilator'] += self.posi 
+    #    blackboard.feedback['metered dose inhaler'] += self.posi
+        # if respiratory distress
+        if blackboard.Signs['shortness of breath'].binary and (blackboard.Signs['hypoxemia'].binary or blackboard.Signs['rhonchi'].binary):
+            s = blackboard.Signs['shortness of breath'].score / 1000. +\
+             (blackboard.Signs['hypoxemia'].binary * blackboard.Signs['hypoxemia'].score +\
+             blackboard.Signs['rhonchi'].binary * blackboard.Signs['rhonchi'].score) / \
+             (blackboard.Signs['hypoxemia'].binary +blackboard.Signs['rhonchi'].binary) / 1000.
+            blackboard.feedback['bag valve mask ventilation'] += self.posi * s
+            # bvm ventilation have been done
+            if blackboard.Inters['bag valve mask ventilation'].binary:
+                blackboard.feedback['endotracheal tube'] += self.posi * s * blackboard.Inters['bag valve mask ventilation'].score / 1000.
+            if not blackboard.Signs['hypertension'].binary:
+                blackboard.feedback['albuterol'] += self.posi * s * blackboard.Signs['hypertension'].score
+                blackboard.feedback['ipratropium'] += self.posi * s * blackboard.Signs['hypertension'].score
+            if blackboard.Signs['wheezing'].binary:
+                blackboard.feedback['dexamethasone'] += self.posi * s * blackboard.Signs['wheezing'].score
+            if blackboard.Signs['hypoxemia'].binary and blackboard.Signs['tachypnea'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) > 90:
+                blackboard.feedback['cpap'] += self.posi * s * blackboard.Signs['tachypnea'].score / 1000.
+            blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+    
+        return py_trees.Status.SUCCESS
+        
+RE_C = Resp_Checker()
+RE_A = Resp()
+RE = py_trees.composites.Sequence("Resp",children = [RE_C,RE_A]) 
+            
+class AMS(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'AMS'):
+        super(AMS, self).__init__(name)
+        self.key = 'Medical - Altered Mental Status'
+    
+    def update(self):
+        blackboard = Blackboard()
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
+            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        blackboard.feedback['normal saline'] += self.posi
+        blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+        return py_trees.Status.SUCCESS
+
+AMS_C = AMS_Checker()
+AMS_A = AMS()
+AMS = py_trees.composites.Sequence("Resp",children = [AMS_C,AMS_A]) 
+            
+class Diab(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Diab'):
+        super(Diab, self).__init__(name)
+        self.key = 'Medical - Diabetic - Hypoglycemia'
+    
+    def update(self):
+        blackboard = Blackboard()
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
+            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+        if blackboard.Signs['hypoglycemia'].binary:
+            s = blackboard.Signs['hypoglycemia'].score / 1000.
+            if blackboard.Signs['loss of consciousness'].binary:
+                blackboard.feedback['normal saline'] += self.posi * blackboard.Signs['loss of consciousness'].score / 1000. * s
+                blackboard.feedback['dextrose'] += self.posi * blackboard.Signs['loss of consciousness'].score / 1000. * s
             else:
-                blackboard.action = '1 microgram/kg Fentanyl IV'
-            return py_trees.Status.FAILURE
-        else:
-            return py_trees.Status.SUCCESS
-        
-class Fentanyl_IN(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Fentanyl_IN'):
-        super(Fentanyl_IN, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        blackboard.fentanyl = [0,0.]
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        # fentanyl usage detection
-        if blackboard.CP_Status['fentanyl'].binary == True or\
-        blackboard.Burn_Status['fentanyl'].binary == True or\
-        blackboard.GT_Status['fentanyl'].binary == True:
-            blackboard.fentanyl[0] += 1
-            blackboard.fentanyl[1] = time.time()
-        # fentanyl usage under different conditions
-        if blackboard.fentanyl[0] == 0 or \
-        (blackboard.fentanyl[0] == 1 and (time.time() - blackboard.fentanyl[1] > 600)):
-            blackboard.action = '2 microgram/kg Fentanyl IN'
-            return py_trees.Status.FAILURE
-        else:
-            return py_trees.Status.SUCCESS
-    
-class Nitro(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'nitroglycerin'):
-        super(Nitro, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        blackboard.nitroglycerin = [0,0.]
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        # usage detection
-        if blackboard.CP_Status['nitroglycerin'].binary == True:
-            blackboard.nitroglycerin[0] += 1
-            blackboard.nitroglycerin[1] = time.time()
-        if len(blackboard.status1['blood pressure'].value) > 0:
-            if int(blackboard.status1['blood pressure'].value.split('/')[0]) > 100:
-                if blackboard.nitroglycerin[0] == 0:
-                    blackboard.action = "nitroglycerin 0.4mg"
-                    return py_trees.Status.FAILURE
-                elif blackboard.nitroglycerin[0] > 0 and\
-                ((time.time() - blackboard.nitroglycerin[1]) > 300):
-                    blackboard.action = "nitroglycerin 0.4mg"
-                    return py_trees.Status.FAILURE
+                blackboard.feedback['oral glucose'] += self.posi * s
         return py_trees.Status.SUCCESS
-    
-class NotStarted(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'NS'):
-        super(NotStarted, self).__init__(name)
-    
-    def update(self):
-        return py_trees.Status.SUCCESS
-		
-# General Trauma
-class Evisceration(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Evisceration'):
-        super(Evisceration, self).__init__(name)
+
+DI_C = Diab_Checker()
+DI_A = Diab()
+DI = py_trees.composites.Sequence("Diab",children = [DI_C,DI_A])    
+            
+class Overdose(py_trees.behaviour.Behaviour):
+    def __init__(self, name = 'Overdose'):
+        super(Overdose, self).__init__(name)
+        self.key = 'Medical - Overdose/Poisoning - Opioid'
     
     def update(self):
         blackboard = Blackboard()
-        if blackboard.GT_Status['evisceration'].binary == True:
-            blackboard.action = "cover with moist sterile dressing"
+        self.posi = blackboard.protocol_flag[self.key][1]
+        if self.posi == 0:
             return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-        
-class OpenChestWound(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'OpenChestWound'):
-        super(OpenChestWound, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.GT_Status['open chest wound'].binary == True:
-            blackboard.action = "cover with occlusive dressing"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-        
-class shock(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'shock'):
-        super(shock, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.GT_Status['shock'].binary == True:
-            blackboard.action = "needle chest decompression"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.SUCCESS
+        if blackboard.Signs['hypoxemia'].binary:
+            blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
+        if int(blackboard.Vitals['BP'].value.strip().split('/')[0]) <= 90:
+            blackboard.feedback['normal saline'] += self.posi * blackboard.Vitals['BP'].score / 1000.
+        if blackboard.Signs['abuse of substance'].binary:
+            blackboard.feedback['narcan'] += self.posi * blackboard.Signs['abuse of substance'].score / 1000.
+        elif blackboard.Signs['pin point pupils'].binary:
+            blackboard.feedback['narcan'] += self.posi * blackboard.Signs['pin point pupils'].score / 1000.
+        elif blackboard.Signs['decreased mental status'].binary:
+            blackboard.feedback['narcan'] += self.posi * blackboard.Signs['decreased mental status'].score / 1000.
+        elif blackboard.Signs['hypotension'].binary:
+            blackboard.feedback['narcan'] += self.posi * blackboard.Signs['hypotension'].score / 1000.
+        elif blackboard.Signs['bradypnea'].binary:
+            blackboard.feedback['narcan'] += self.posi * blackboard.Signs['bradypnea'].score / 1000.
+        blackboard.feedback['cardiac monitor'] += self.posi
+        blackboard.feedback['transport'] += self.posi
+        return py_trees.Status.SUCCESS 
 			
+OV_C = Overdose_Checker()
+OV_A = Overdose()
+OV = py_trees.composites.Sequence("Diab",children = [OV_C,OV_A]) 
 
-# Respiratory
-class MDI(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'MDI'):
-        super(MDI, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.Res_Status['mdi'].binary == True:
-            blackboard.action = self.name
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.SUCCESS
-        
-class CPAP(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'CPAP'):
-        super(CPAP, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.Res_Status['cpap'].binary == True:
-            return py_trees.Status.SUCCESS
-        elif len(blackboard.status1['blood pressure'].value) > 0:
-            if int(blackboard.status1['blood pressure'].value.split('/')[0]) < 90 or blackboard.status1['conscious'] == False:
-                return py_trees.Status.SUCCESS
-        elif len(blackboard.status1['spo2'].value) > 0:
-            if int(blackboard.status1['spo2'].value.replace('%','')) < 90:
-                blackboard.action = self.name
-                return py_trees.Status.FAILURE
-        return py_trees.Status.SUCCESS
-        
-class AdministerOxygen(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'AdministerOxygen'):
-        super(AdministerOxygen, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.Res_Status['administer oxygen'].binary == True:
-            return py_trees.Status.SUCCESS
-        else:
-            blackboard.action = self.name
-            return py_trees.Status.FAILURE
-        
-class AlbuterolSulfate(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'AlbuterolSulfate'):
-        super(AlbuterolSulfate, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.Res_Status['albuterol sulfate'].binary == True:
-            blackboard.action = self.name
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.SUCCESS
-        
-class Methylprednisolone(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Methylprednisolone'):
-        super(Methylprednisolone, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.Res_Status['methylprednisolone'].binary == True:
-            blackboard.action = self.name
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.SUCCESS
-			
-# Burn
-class ElectricalBurn(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Electrical Burn?'):
-        super(ElectricalBurn, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if 'electric' in blackboard.status2['burn'].value or\
-        'electric' in blackboard.status2['burn'].content:
-            blackboard.action = "Search for additional injury"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-
-class ChemicalBurn(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Chemical Burn?'):
-        super(ChemicalBurn, self).__init__(name)
-
-    def update(self):
-        blackboard = Blackboard()
-        if 'chemical' in blackboard.status2['burn'].value or\
-        'chemical' in blackboard.status2['burn'].content:
-            blackboard.action = "Irrigate with water/brush the powder off"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-
-class ThermalBurn(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Thermal Burn?'):
-        super(ThermalBurn, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if 'thermal' in blackboard.status2['burn'].value or\
-        'thermal' in blackboard.status2['burn'].content:
-            blackboard.action = "Assess for carbon monoxide exposure"
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.SUCCESS
-        
-        
-class SpiRestriction(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Spinal motion restriction'):
-        super(SpiRestriction, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.Burn_Status['spinal motion restriction'].binary == True:
-            blackboard.action = self.name
-        return py_trees.Status.SUCCESS
-
-class Ketamine(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Ketamine'):
-        super(Ketamine, self).__init__(name)
-        
-    def setup(self, unused_timeout = 15):
-        blackboard = Blackboard()
-        blackboard.ketamine = [0,0]
-        return True
-    
-    def update(self):
-        blackboard = Blackboard()
-        # usage detection
-        if blackboard.Burn_Status['ketamine'].binary == True or\
-        blackboard.GT_Status['ketamine'].binary == True:
-            blackboard.ketamine[0] += 1
-            blackboard.ketamine[1] = time.time()
-        if blackboard.fentanyl[0] >= 2 and blackboard.status['pain'].binary == True:
-            if blackboard.ketamine[0] == 0:
-                blackboard.action = "ketamine 0.5mg/kg IV"
-                return py_trees.Status.SUCCESS
-            elif blackboard.ketamine[0] == 1 and (time.time() - blackboard.ketamine[1] > 600):
-                blackboard.action = "ketamine 0.5mg/kg IV"
-                return py_trees.Status.SUCCESS
-            else:
-                return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.SUCCESS
-			
-# Bleeding Control
-class Unstable(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'unstable?'):
-        super(Unstable, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.BC_Status['unstable'].binary == True:
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-
-class Move(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Move to tourniquet'):
-        super(Move, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        blackboard.action = self.name
-        return py_trees.Status.SUCCESS
-    
-class Pressure(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Direct pressure to the bleeding site'):
-        super(Pressure, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        blackboard.action = self.name
-        return py_trees.Status.SUCCESS
-    
-class Control(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Controlled?'):
-        super(Control, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.status1['bleed'].binary == True:
-            return py_trees.Status.FAILURE
-        else:
-            return py_trees.Status.SUCCESS
-			
-# BLSCPR
-class DNR(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'DNR?'):
-        super(DNR, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.BLSCPR_Status['dnr'].binary == True:
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-        
-class CPR(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'CPR'):
-        super(CPR, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.BLSCPR_Status['cpr'].binary == True or \
-        blackboard.BLSCPR_Status['aed'].binary == True or\
-        blackboard.BLSCPR_Status['defibrillation'].binary == True:
-            blackboard.action = self.name
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-
-class AirwayManagement(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'AirwayManagement'):
-        super(AirwayManagement, self).__init__(name)
-    
-    def update(self):
-        blackboard = Blackboard()
-        if blackboard.BLSCPR_Status['bvm'].binary == True or\
-        blackboard.BLSCPR_Status['opa'].binary == True:
-            blackboard.action = self.name
-            return py_trees.Status.SUCCESS
-        else:
-            return py_trees.Status.FAILURE
-			
-# sub-trees
-BLSCPR_Action = py_trees.composites.Selector("BLSCPR_Action")
-BLSCPR_S1 = py_trees.composites.Sequence("Sequence_1")
-BLSCPR_S2 = py_trees.composites.Sequence("Sequence_2")
-BLSCPR_NS_1 = NotStarted()
-BLSCPR_NS_2 = NotStarted()
-BLSCPR_DNR = DNR()
-BLSCPR_CPR = CPR()
-BLSCPR_AM = AirwayManagement()
-BLSCPR_Action.add_children([BLSCPR_S1,BLSCPR_S2,BLSCPR_NS_1])
-BLSCPR_S1.add_children([BLSCPR_DNR,BLSCPR_NS_2])
-BLSCPR_S2.add_children([BLSCPR_CPR,BLSCPR_AM])
-
-BC_Action = py_trees.composites.Sequence("BleedControl_Action")
-BC_S1 = py_trees.composites.Sequence("Sequence_1")
-BC_S2 = py_trees.composites.Sequence("Sequence_2")
-BC_SE = py_trees.composites.Selector("Selector")
-BC_NS = NotStarted()
-BC_US = Unstable()
-BC_Move_1 = Move()
-BC_Move_2 = Move()
-BC_Pressure = Pressure()
-BC_Control = Control()
-BC_Action.add_children([BC_SE,BC_NS])
-BC_SE.add_children([BC_S1,BC_S2])
-BC_S1.add_children([BC_US,BC_Move_1])
-BC_S2.add_children([BC_Pressure,BC_Control,BC_Move_2])
-
-# composite
-Burn_Action = py_trees.composites.Sequence("Burn_Action")
-B_S1 = py_trees.composites.Sequence("Sequence")
-B_S2 = py_trees.composites.Sequence("Sequence")
-B_S3 = py_trees.composites.Sequence("Sequence")
-B_S4 = py_trees.composites.Sequence("Sequence")
-B_SE1 = py_trees.composites.Selector("Selector")
-B_SE2 = py_trees.composites.Selector("Selector")
-B_SE3 = py_trees.composites.Selector("Selector")
-B_SE4 = py_trees.composites.Selector("Selector")
-# behaviour
-B_NS_1 = NotStarted()
-B_NS_2 = NotStarted()
-B_NS_3 = NotStarted()
-B_SPI = SpiRestriction()
-B_EB = ElectricalBurn()
-B_CB = ChemicalBurn()
-B_TB = ThermalBurn()
-B_IV = IV()
-B_NAU_1 = Nausea()
-B_NAU_2 = Nausea()
-B_OD_1 = ondansetron()
-B_OD_2 = ondansetron()
-B_IP = IP()
-B_FEN_IV = Fentanyl_IV()
-B_FEN_IN = Fentanyl_IN()
-B_A = Advanced()
-B_KET = Ketamine()
-# tree
-Burn_Action.add_children([B_SPI,B_SE1,B_A,B_IP,B_SE2])
-B_SE1.add_children([B_EB,B_CB,B_TB,B_NS_1])
-B_SE2.add_children([B_S1,B_S2])
-B_S1.add_children([B_IV,B_FEN_IV,B_KET,B_SE3])
-B_SE3.add_children([B_S3,B_NS_2])
-B_S3.add_children([B_NAU_1,B_OD_1])
-B_S2.add_children([B_FEN_IN,B_SE4])
-B_S4.add_children([B_NAU_2,B_OD_2])
-B_SE4.add_children([B_S4,B_NS_3])
-
-Respiratory_Action = py_trees.composites.Selector("Respiratory_Action")
-R_S1 = py_trees.composites.Sequence("Sequence")
-R_S2 = py_trees.composites.Sequence("Sequence")
-R_SE = py_trees.composites.Selector("Selector")
-R_MDI = MDI()
-R_CPAP = CPAP()
-R_AO = AdministerOxygen()
-R_AS = AlbuterolSulfate()
-R_A = Advanced()
-R_IV = IV()
-R_METH = Methylprednisolone()
-R_NS_1 = NotStarted()
-R_NS_2 = NotStarted()
-Respiratory_Action.add_children([R_S1,R_NS_1])
-R_S1.add_children([R_MDI,R_CPAP,R_AO,R_AS,R_SE])
-R_S2.add_children([R_A,R_IV,R_METH])
-R_SE.add_children([R_S2,R_NS_2])
-
-# composites
-GTM_Action = py_trees.composites.Sequence("GeneralTraumaManagement_Action")
-GT_S1 = py_trees.composites.Sequence("Sequence_1")
-GT_S2 = py_trees.composites.Sequence("Sequence_2")
-GT_S3 = py_trees.composites.Sequence("Sequence_3")
-GT_S4 = py_trees.composites.Sequence("Sequence_4")
-GT_S5 = py_trees.composites.Sequence("Sequence_5")
-GT_SE1 = py_trees.composites.Selector("Selector_1")
-GT_SE2 = py_trees.composites.Selector("Selector_2")
-GT_SE3 = py_trees.composites.Selector("Selector_3")
-GT_SE4 = py_trees.composites.Selector("Selector_4")
-# behaviours
-GT_SPI = SpiRestriction()
-GT_Evi = Evisceration()
-GT_OCW = OpenChestWound()
-GT_Sh = shock()
-GT_A = Advanced()
-GT_IV = IV()
-GT_NAU_1 = Nausea()
-GT_NAU_2 = Nausea()
-GT_OD_1 = ondansetron()
-GT_OD_2 = ondansetron()
-GT_IP = IP()
-GT_FEN_IV = Fentanyl_IV()
-GT_FEN_IN = Fentanyl_IN()
-GT_NS_1 = NotStarted()
-GT_NS_2 = NotStarted()
-GT_NS_3 = NotStarted()
-GT_KET = Ketamine()
-# tree
-GTM_Action.add_children([GT_SPI,GT_SE1,GT_S1])
-GT_SE1.add_children([GT_Evi,GT_OCW,GT_NS_1])
-GT_S1.add_children([GT_A,GT_Sh,GT_IP,GT_SE2])
-GT_SE2.add_children([GT_S2,GT_S3])
-GT_S2.add_children([GT_IV,GT_FEN_IV,GT_KET,GT_SE3])
-GT_SE3.add_children([GT_S4,GT_NS_2])
-GT_S4.add_children([GT_NAU_1,GT_OD_1])
-GT_S3.add_children([GT_FEN_IN,GT_SE4])
-GT_SE4.add_children([GT_S5,GT_NS_3])
-GT_S5.add_children([GT_NAU_2,GT_OD_2])
-
-# chestpain action
-# composites
-ChestPain_Action = py_trees.composites.Sequence("ChestPain_Action")
-CP_S1 = py_trees.composites.Sequence("Sequence_1")
-CP_S2 = py_trees.composites.Sequence("Sequence_2")
-CP_S3 = py_trees.composites.Sequence("Sequence_3")
-CP_S4 = py_trees.composites.Sequence("Sequence_4")
-CP_S5 = py_trees.composites.Sequence("Sequence_5")
-CP_S6 = py_trees.composites.Sequence("Sequence_6")
-CP_S7 = py_trees.composites.Sequence("Sequence_7")
-CP_SE0 = py_trees.composites.Selector("Selector_0")
-CP_SE1 = py_trees.composites.Selector("Selector_1")
-CP_SE2 = py_trees.composites.Selector("Selector_2")
-CP_SE3 = py_trees.composites.Selector("Selector_3")
-CP_SE4 = py_trees.composites.Selector("Selector_4")
-# behaviours
-CP_ECG = ECG()
-CP_MI = MI()
-CP_TRANS = Transport()
-CP_AS = Aspirin()
-CP_NI = Nitro()
-CP_A = Advanced()
-CP_IV = IV()
-CP_NAU_1 = Nausea()
-CP_NAU_2 = Nausea()
-CP_NAU_3 = Nausea()
-CP_OD_1 = ondansetron()
-CP_OD_2 = ondansetron()
-CP_OD_3 = ondansetron()
-CP_IP = IP()
-CP_FEN_IV = Fentanyl_IV()
-CP_FEN_IN = Fentanyl_IN()
-CP_NS_1 = NotStarted()
-CP_NS_2 = NotStarted()
-CP_NS_3 = NotStarted()
-CP_NS_4 = NotStarted()
-# build sub-tree: chestpain action
-ChestPain_Action.add_children([CP_ECG,CP_SE0])
-CP_SE0.add_children([CP_S1,CP_S2,CP_NS_4])
-CP_S1.add_children([CP_MI,CP_TRANS])
-CP_S2.add_children([CP_AS,CP_NI,CP_A,CP_SE1,CP_IP,CP_SE2])
-CP_SE1.add_children([CP_S3,CP_NS_1])
-CP_S3.add_children([CP_NAU_1,CP_OD_1])
-CP_SE2.add_children([CP_S4,CP_S6])
-CP_S4.add_children([CP_IV,CP_FEN_IV,CP_SE3])
-CP_SE3.add_children([CP_S5,CP_NS_2])
-CP_S5.add_children([CP_NAU_2,CP_OD_2])
-CP_S6.add_children([CP_FEN_IN,CP_SE4])
-CP_SE4.add_children([CP_S7,CP_NS_3])
-CP_S7.add_children([CP_NAU_3,CP_OD_3])
+protocols = py_trees.composites.Parallel('protocols',policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ONE,\
+                                   children = [CP,OV,DI,AMS,RE,SZ,BE,AP])
