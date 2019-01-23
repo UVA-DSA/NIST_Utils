@@ -185,7 +185,7 @@ class ConceptExtractor(object):
 
 
 class CEWithoutMM(object):
-    def __init__(self, List_route):
+    def __init__(self, List_route, neg_res = None):
         # stop words
         stop_words = set(stopwords.words('english'))
         stop_words.update(['zero','one','two','three','four','five','six','seven','eight','nine','ten','may','also','across','among','beside','however','yet','within','h','c']) 
@@ -193,12 +193,23 @@ class CEWithoutMM(object):
         # table generation
         self.seeds = list()
         self.mapping = collections.defaultdict(list)
+        self.neg_res = collections.defaultdict(dict)
         fo = open(List_route)
         for line in fo:
             temp = line.strip('\r\n').strip().split('\t')
             self.seeds.append(temp[0])
-            for i in temp:
+            for i in temp[:25]:
                 self.mapping[i].append(temp[0])
+        fo.close()
+        if neg_res:
+            fo = open(neg_res)
+            lines = [line.strip('\r\n').lower().split('\t') for line in fo]
+            for item in lines:
+                if len(item) > 2:
+                    self.neg_res[int(item[0][10:])][item[1]] = item[2:]
+                else:
+                    self.neg_res[int(item[0][10:])][item[1]] = None
+        fo.close()
                 
     def StatusInit(self):
         '''
@@ -262,7 +273,7 @@ class CEWithoutMM(object):
     def removeStopWords(self, sentence):
         return self.re_stop_words.sub(" ", sentence)
         
-    def CE(self, text, tick_num):
+    def CE(self, text, tick_num, case_num = 0):
         '''
         naive version: ignore the value field
         score: always 1000.
@@ -282,13 +293,26 @@ class CEWithoutMM(object):
             for i in words:
                 if i in self.mapping:
                     try:
-                        neg = negation_detection.predict(sent, i)
-                        if neg != None:
-                            for j in self.mapping[i]:
-                                self.Status[j].bianry = neg
-                                self.Status[j].score = 1000.
-                                self.Status[j].content = i
-                                self.Status[j].tick = tick_num
+                        if not self.neg_res:
+                            neg = negation_detection.predict(sent, i)
+                            if neg != None:
+                                for j in self.mapping[i]:
+                                    self.Status[j].bianry = neg
+                                    self.Status[j].score = 1000.
+                                    self.Status[j].content = i
+                                    self.Status[j].tick = tick_num
+                        else:
+                            if self.neg_res[case_num][sent]:
+                                neg = True
+                                # check neg results, if term is included, set neg as False, else True
+                                for str_ in self.neg_res[case_num][sent]:
+                                    if i in str_:
+                                        neg = False
+                                for j in self.mapping[i]:
+                                    self.Status[j].binary = neg
+                                    self.Status[j].score = 1000.
+                                    self.Status[j].content = i
+                                    self.Status[j].tick = tick_num
                     except:
                         continue
                             
@@ -296,13 +320,26 @@ class CEWithoutMM(object):
                 temp = ' '.join(i)
                 if temp in self.mapping:
                     try:
-                        neg = negation_detection.predict(sent, temp)
-                        if neg != None:
-                            for j in self.mapping[temp]:
-                                self.Status[j].bianry = neg
-                                self.Status[j].score = 1000.
-                                self.Status[j].content = temp
-                                self.Status[j].tick = tick_num
+                        if not self.neg_res:
+                            neg = negation_detection.predict(sent, temp)
+                            if neg != None:
+                                for j in self.mapping[temp]:
+                                    self.Status[j].bianry = neg
+                                    self.Status[j].score = 1000.
+                                    self.Status[j].content = temp
+                                    self.Status[j].tick = tick_num
+                        else:
+                            if self.neg_res[case_num][sent]:
+                                neg = True
+                                # check neg results, if term is included, set neg as False, else True
+                                for str_ in self.neg_res[case_num][sent]:
+                                    if temp in str_:
+                                        neg = False
+                                for j in self.mapping[temp]:
+                                    self.Status[j].binary = neg
+                                    self.Status[j].score = 1000.
+                                    self.Status[j].content = temp
+                                    self.Status[j].tick = tick_num
                     except:
                         continue
                             
@@ -310,13 +347,26 @@ class CEWithoutMM(object):
                 temp = ' '.join(i)
                 if temp in self.mapping:
                     try:
-                        neg = negation_detection.predict(sent, temp)
-                        if neg != None:
-                            for j in self.mapping[temp]:
-                                self.Status[j].bianry = neg
-                                self.Status[j].score = 1000.
-                                self.Status[j].content = temp
-                                self.Status[j].tick = tick_num
+                        if not self.neg_res:
+                            neg = negation_detection.predict(sent, temp)
+                            if neg != None:
+                                for j in self.mapping[temp]:
+                                    self.Status[j].bianry = neg
+                                    self.Status[j].score = 1000.
+                                    self.Status[j].content = temp
+                                    self.Status[j].tick = tick_num
+                        else:
+                            if self.neg_res[case_num][sent]:
+                                neg = True
+                                # check neg results, if term is included, set neg as False, else True
+                                for str_ in self.neg_res[case_num][sent]:
+                                    if temp in str_:
+                                        neg = False
+                                for j in self.mapping[temp]:
+                                    self.Status[j].binary = neg
+                                    self.Status[j].score = 1000.
+                                    self.Status[j].content = temp
+                                    self.Status[j].tick = tick_num
                     except:
                         continue
         

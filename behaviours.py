@@ -1,12 +1,16 @@
 import py_trees
 from pandas import Series, DataFrame
 import pandas as pd
+import numpy as np
 from scipy import spatial
 import re
 from py_trees.blackboard import Blackboard
 import ConceptExtract as CE
 import time
 from ranking_func import rank
+
+def softmax(x):
+    return np.exp(x) / np.sum(np.exp(x), axis=0)
 
 # dummy leaves
 class dummy(py_trees.behaviour.Behaviour):
@@ -188,13 +192,14 @@ class IG(py_trees.behaviour.Behaviour):
     slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
     vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
     exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
-    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", inC = None):
+    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", inC = None, neg_res = None):
         super(IG, self).__init__(name)
         self.slist = slist
         self.vlist = vlist
         self.exlist = exlist
         self.intlist= intlist
         self.inC = inC
+        self.neg_res = neg_res
         
     def setup(self, unused_timeout = 15):
         '''
@@ -209,7 +214,7 @@ class IG(py_trees.behaviour.Behaviour):
         '''
         vcl = pd.read_csv(self.exlist)
         blackboard = Blackboard()
-        self.sce = CE.CEWithoutMM(self.slist)
+        self.sce = CE.CEWithoutMM(self.slist, neg_res = self.neg_res)
         self.sce.StatusInit()
         for item in vcl:
             self.sce.SpecificInit(item)
@@ -328,7 +333,7 @@ class IG(py_trees.behaviour.Behaviour):
         #self.ice.ConceptExtract(blackboard.text)
         #blackboard.concepts = self.ice.concepts
         #blackboard.confi = self.sce.scores
-        self.sce.CE(blackboard.text, blackboard.tick_num)
+        self.sce.CE(blackboard.text, blackboard.tick_num, blackboard.case_num)
         self.Vital2Symptom()
         blackboard.Signs = self.sce.Status
         #self.vce.concepts = blackboard.concepts
