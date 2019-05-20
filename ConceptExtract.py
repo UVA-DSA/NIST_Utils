@@ -88,7 +88,8 @@ class ConceptExtractor(object):
                                      
     def ConceptWrapper(self,concepts):
         '''
-        this method is developed especially for transforming the information in vital column of RAA dataset
+        this method is developed especially for transforming the structured information, such as vital signs in the RAA dataset
+        this values extracted from this method overrides the ones extracted from the FirstExtract method.
         concepts: a list contains items with following format: (concept, valueStr)
         
         wrap rules:
