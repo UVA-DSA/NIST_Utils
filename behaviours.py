@@ -198,7 +198,9 @@ class InformationGathering(py_trees.behaviour.Behaviour):
        # self.ice.DisplayStatus()
     #    blackboard.ConcLog += self.sce.Log + self.vce.Log
         return py_trees.Status.SUCCESS
-        
+
+# Information gathering when using offline ontology NLP (Sarah's EMSContExt)
+# Does not call MetaMap, uses an offline negation list from NegEx
 class IG(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'IG',\
     slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
