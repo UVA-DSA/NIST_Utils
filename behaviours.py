@@ -501,6 +501,7 @@ class TextCollection(py_trees.behaviour.Behaviour):
         return py_trees.Status.SUCCESS
  
 # protocols' checker
+# Each protocol has a checker class
 class ChestPain_Checker(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'ChestPain_Checker'):
         super(ChestPain_Checker, self).__init__(name)
@@ -610,6 +611,7 @@ class Overdose_Checker(py_trees.behaviour.Behaviour):
             return py_trees.Status.FAILURE    
         
 # protocols
+# Each protocol has an Action class
 class ChestPain(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'ChestPain'):
         super(ChestPain, self).__init__(name)
