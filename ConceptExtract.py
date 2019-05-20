@@ -78,8 +78,8 @@ class ConceptExtractor(object):
     def ConceptExtract(self, sent_text):
         '''
         sent_text: a list of sent text
+        mm: Path should be changed to MetaMap location.
         '''
-        # Path should be changed to MetaMap location.
         mm = MetaMap.get_instance('/Users/sileshu/Downloads/public_mm/bin/metamap16',version = 2016)
         self.concepts,_ = mm.extract_concepts(sent_text,word_sense_disambiguation=True,\
                                      ignore_stop_phrases=True)
