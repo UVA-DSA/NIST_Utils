@@ -43,7 +43,8 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         self.exlist = exlist
         self.intlist= intlist
         self.inC = inC
-        
+    
+    # This method is called only once for all the nodes in the BT when you set it up in exp.py.
     def setup(self, unused_timeout = 15):
         '''
         create a ConceptExtractor and initialize the patient status
@@ -179,7 +180,8 @@ class InformationGathering(py_trees.behaviour.Behaviour):
                     self.sce.Status['tachycardia'].score = 1000.
   
         return True
-        
+    
+    # method to be called on every tick.
     def update(self):
         blackboard = Blackboard()
         self.sce.ConceptExtract(blackboard.text)
