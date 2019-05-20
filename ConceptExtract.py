@@ -125,6 +125,10 @@ class ConceptExtractor(object):
             
         
     def FirstExtract(self, sent_text, tick_num):
+        '''
+        Transform MetaMap concept to the concept in our system
+        Also try to extract surrounding info of the concepts (e.g. values for the vitals, description for the symptoms)
+        '''
         for concept in self.concepts:
             if concept[1] == 'AA':
                 continue
