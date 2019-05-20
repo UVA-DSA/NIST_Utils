@@ -3,6 +3,8 @@
 ## 5/19/2016 - update to allow for authentication based on api-key, rather than username/pw
 ## See https://documentation.uts.nlm.nih.gov/rest/authentication.html for full explanation
 
+# you migiht need to get an apikey to run this script from UMLS
+
 import requests
 #from pyquery import PyQuery as pq
 import lxml.html as lh
