@@ -8,6 +8,7 @@ from py_trees.blackboard import Blackboard
 import ConceptExtract as CE
 import time
 from ranking_func import rank
+from collections import defaultdict
 
 def softmax(x):
     return np.exp(x) / np.sum(np.exp(x), axis=0)
@@ -18,16 +19,16 @@ class dummy(py_trees.behaviour.Behaviour):
         super(dummy, self).__init__(name)
 
 class PROTOCOLi_Check(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'PROTOCOLi_Check'):
+    def __init__(self, name = 'PROTOCOLi Check'):
         super(PROTOCOLi_Check, self).__init__(name)
 
 class PROTOCOLi_Action(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'PROTOCOLi_Action'):
+    def __init__(self, name = 'PROTOCOLi Action'):
         super(PROTOCOLi_Action, self).__init__(name)
         
-# action leaves
+# behaviors in framework
 class InformationGathering(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'InformationGathering',\
+    def __init__(self, name = 'Information Extraction',\
     slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
     vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
     exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
@@ -60,8 +61,12 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         #self.vce.StatusInit()
         self.ice = CE.ConceptExtractor(self.intlist)
         self.ice.StatusInit()
+        self.vce.StatusInit()
         if self.inC:
             self.vce.ConceptWrapper(self.inC)
+        pool = ['Pulse', 'Resp', 'BP', 'GCS', 'Glucose', 'SPO2', 'Pain', 'EKG']
+        for item in pool:
+            self.vce.SpecificInit(item)
         blackboard.Signs = self.sce.Status
         blackboard.Vitals = self.vce.Status
         blackboard.Inters = self.ice.Status
@@ -169,11 +174,14 @@ class InformationGathering(py_trees.behaviour.Behaviour):
     def update(self):
         blackboard = Blackboard()
         self.sce.ConceptExtract(blackboard.text)
+        if blackboard.inC:
+            self.vce.ConceptWrapper(blackboard.inC)
         blackboard.concepts = self.sce.concepts
         blackboard.confi = self.sce.scores
         self.sce.FirstExtract(blackboard.text, blackboard.tick_num)
         self.Vital2Symptom()
         blackboard.Signs = self.sce.Status
+        
         #self.vce.concepts = blackboard.concepts
         #self.vce.scores = self.sce.scores
         #self.vce.FirstExtract(blackboard.text, blackboard.tick_num)
@@ -183,8 +191,8 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         self.ice.scores = self.sce.scores
         self.ice.FirstExtract(blackboard.text, blackboard.tick_num)
         blackboard.Inters = self.ice.Status
-        self.ice.DisplayStatus()
-        blackboard.ConcLog += self.sce.Log + self.vce.Log
+       # self.ice.DisplayStatus()
+    #    blackboard.ConcLog += self.sce.Log + self.vce.Log
         return py_trees.Status.SUCCESS
         
 class IG(py_trees.behaviour.Behaviour):
@@ -192,14 +200,21 @@ class IG(py_trees.behaviour.Behaviour):
     slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
     vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
     exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
-    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", inC = None, neg_res = None):
+    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", \
+    aio_ss = "/Users/sileshu/Downloads/renewconceptlists/All_In_One_signs&symptoms.xlsx",\
+    aio_int = "/Users/sileshu/Downloads/renewconceptlists/All_In_One_interventions.xlsx",\
+    inC = None, neg_res = None, WDistance = False, aio_only = False):
         super(IG, self).__init__(name)
         self.slist = slist
         self.vlist = vlist
         self.exlist = exlist
         self.intlist= intlist
+        self.aio_ss = aio_ss
+        self.aio_int = aio_int
         self.inC = inC
         self.neg_res = neg_res
+        self.WDistance = WDistance
+        self.aio_only = aio_only
         
     def setup(self, unused_timeout = 15):
         '''
@@ -214,19 +229,21 @@ class IG(py_trees.behaviour.Behaviour):
         '''
         vcl = pd.read_csv(self.exlist)
         blackboard = Blackboard()
-        self.sce = CE.CEWithoutMM(self.slist, neg_res = self.neg_res)
+        self.sce = CE.CEWithoutMM(self.slist, self.intlist,\
+        AllinOne_SS = self.aio_ss, AllinOne_Int = self.aio_int,\
+         neg_res = self.neg_res, WDistance = self.WDistance, aio_only = self.aio_only)
         self.sce.StatusInit()
         for item in vcl:
             self.sce.SpecificInit(item)
         self.vce = CE.ConceptExtractor(self.vlist)
         #self.vce.StatusInit()
-        self.ice = CE.ConceptExtractor(self.intlist)
-        self.ice.StatusInit()
+        #self.ice = CE.ConceptExtractor(self.intlist)
+        #self.ice.StatusInit()
         if self.inC:
             self.vce.ConceptWrapper(self.inC)
         blackboard.Signs = self.sce.Status
         blackboard.Vitals = self.vce.Status
-        blackboard.Inters = self.ice.Status
+        blackboard.Inters = self.sce.Interventions
         blackboard.ConcLog = []
         return True
     
@@ -344,10 +361,10 @@ class IG(py_trees.behaviour.Behaviour):
         #self.ice.concepts = blackboard.concepts
         #self.ice.scores = self.sce.scores
         #self.ice.FirstExtract(blackboard.text, blackboard.tick_num)
-        #blackboard.Inters = self.ice.Status
+        blackboard.Inters = self.sce.Interventions
         #self.ice.DisplayStatus()
         #blackboard.ConcLog += self.sce.Log + self.vce.Log
-        #self.sce.DisplayStatus()
+        self.sce.DisplayStatus()
         return py_trees.Status.SUCCESS
         
         
@@ -380,7 +397,7 @@ class Vectorize(py_trees.behaviour.Behaviour):
                 su += res
                 vec.append(res)
             for i in xrange(len(vec)):
-                vec[i] = vec[i]
+                vec[i] = vec[i] / su
             self.PV[item] = vec
         blackboard.PV = self.PV
         return True
@@ -414,7 +431,7 @@ class Vectorize(py_trees.behaviour.Behaviour):
         return py_trees.Status.SUCCESS
 
 class ProtocolSelector(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'ProtocolSelector'):
+    def __init__(self, name = 'Protocol Selector'):
         super(ProtocolSelector, self).__init__(name)
     
     def setup(self, unused_timeout = 15):
@@ -429,6 +446,12 @@ class ProtocolSelector(py_trees.behaviour.Behaviour):
     
     def update(self):
         blackboard = Blackboard()
+        blackboard.protocol_flag = dict()
+        blackboard.feedback = dict()
+        for i in blackboard.PV:
+            blackboard.protocol_flag[i] = (False,0.)
+        for i in blackboard.Inters:
+            blackboard.feedback[i] = 0.
         num = sum(blackboard.pos[:3])
         for idx,item in enumerate(blackboard.candi):
             if idx < 3:
@@ -436,7 +459,7 @@ class ProtocolSelector(py_trees.behaviour.Behaviour):
         return py_trees.Status.SUCCESS
 
 class TextCollection(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'TextCollection'):
+    def __init__(self, name = 'Speech To Text Conversion'):
         super(TextCollection, self).__init__(name)
         
     def setup(self, unused_timeout = 15):
@@ -606,7 +629,8 @@ class ChestPain(py_trees.behaviour.Behaviour):
         elif blackboard.Signs['abuse of substance'].binary:
             blackboard.feedback['midazolam'] += self.posi * blackboard.Signs['abuse of substance'].score / 1000.
           #  blackboard.feedback['diazepam'] += self.posi * blackboard.Signs['abuse of substance'].score / 1000.
-        if 'STEMI' in blackboard.Vitals['EKG'].value and blackboard.Vitals['Pain'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) > 100:
+        if 'STEMI' in blackboard.Vitals['EKG'].value and blackboard.Vitals['Pain'].binary \
+        and blackboard.Vitals['BP'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) > 100:
             blackboard.feedback['nitroglycerin'] += self.posi * blackboard.Vitals['Pain'].score / 1000. * blackboard.Vitals['BP'].score / 1000.
         if  blackboard.Vitals['Pain'].binary and blackboard.Inters['nitroglycerin'].binary:
           #  blackboard.feedback['morphine'] += self.posi * blackboard.Vitals['Pain'].score / 1000. * blackboard.Inters['nitroglycerin'].score / 1000.
@@ -776,20 +800,21 @@ class Resp(py_trees.behaviour.Behaviour):
     #    blackboard.feedback['metered dose inhaler'] += self.posi
         # if respiratory distress
         if blackboard.Signs['shortness of breath'].binary and (blackboard.Signs['hypoxemia'].binary or blackboard.Signs['rhonchi'].binary):
-            s = blackboard.Signs['shortness of breath'].score / 1000. +\
-             (blackboard.Signs['hypoxemia'].binary * blackboard.Signs['hypoxemia'].score +\
+            s = blackboard.Signs['shortness of breath'].score / 1000. *\
+             ((blackboard.Signs['hypoxemia'].binary * blackboard.Signs['hypoxemia'].score +\
              blackboard.Signs['rhonchi'].binary * blackboard.Signs['rhonchi'].score) / \
-             (blackboard.Signs['hypoxemia'].binary +blackboard.Signs['rhonchi'].binary) / 1000.
+             (blackboard.Signs['hypoxemia'].binary +blackboard.Signs['rhonchi'].binary) / 1000.)
             blackboard.feedback['bag valve mask ventilation'] += self.posi * s
             # bvm ventilation have been done
             if blackboard.Inters['bag valve mask ventilation'].binary:
                 blackboard.feedback['endotracheal tube'] += self.posi * s * blackboard.Inters['bag valve mask ventilation'].score / 1000.
             if not blackboard.Signs['hypertension'].binary:
-                blackboard.feedback['albuterol'] += self.posi * s * blackboard.Signs['hypertension'].score
-                blackboard.feedback['ipratropium'] += self.posi * s * blackboard.Signs['hypertension'].score
+                blackboard.feedback['albuterol'] += self.posi * s * blackboard.Signs['hypertension'].score / 1000.
+                blackboard.feedback['ipratropium'] += self.posi * s * blackboard.Signs['hypertension'].score / 1000.
             if blackboard.Signs['wheezing'].binary:
-                blackboard.feedback['dexamethasone'] += self.posi * s * blackboard.Signs['wheezing'].score
-            if blackboard.Signs['hypoxemia'].binary and blackboard.Signs['tachypnea'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) > 90:
+                blackboard.feedback['dexamethasone'] += self.posi * s * blackboard.Signs['wheezing'].score / 1000.
+            if blackboard.Signs['hypoxemia'].binary and blackboard.Signs['tachypnea'].binary \
+            and blackboard.Vitals['BP'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) > 90:
                 blackboard.feedback['cpap'] += self.posi * s * blackboard.Signs['tachypnea'].score / 1000.
             blackboard.feedback['cardiac monitor'] += self.posi
         blackboard.feedback['transport'] += self.posi
@@ -860,7 +885,7 @@ class Overdose(py_trees.behaviour.Behaviour):
             return py_trees.Status.SUCCESS
         if blackboard.Signs['hypoxemia'].binary:
             blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
-        if int(blackboard.Vitals['BP'].value.strip().split('/')[0]) <= 90:
+        if blackboard.Vitals['BP'].binary and int(blackboard.Vitals['BP'].value.strip().split('/')[0]) <= 90:
             blackboard.feedback['normal saline'] += self.posi * blackboard.Vitals['BP'].score / 1000.
         if blackboard.Signs['abuse of substance'].binary:
             blackboard.feedback['narcan'] += self.posi * blackboard.Signs['abuse of substance'].score / 1000.

@@ -9,7 +9,7 @@ import nltk
 from nltk.corpus import stopwords
 import re
 from nltk import ngrams
-import negation_detection
+#import negation_detection
 from nltk.tokenize import sent_tokenize
 
 class PatientStatus(object):
@@ -96,12 +96,19 @@ class ConceptExtractor(object):
         tick: 1
         '''
         pool = set(['Pulse', 'Resp', 'BP', 'GCS', 'Glucose', 'SPO2', 'Pain', 'EKG'])
-        self.Status = dict()
+        #self.Status = dict()
         self.vtLog = dict()
         for item in pool:
             self.vtLog[item] = []
         for item in concepts:
             if item[0] not in pool:
+                continue
+            if item[0] == 'BP':
+                if '/' not in item[1]: self.Status[item[0]] = PatientStatus(item[0], False, '0/0', item[0])
+                else:
+                    temp = item[1].split('/')
+                    if not temp[0] or not temp[1]:
+                        self.Status[item[0]] = PatientStatus(item[0], False, '0/0', item[0])
                 continue
             if item[1] == '0' or item[1] == '0/0' or item[1] == '':
                 self.Status[item[0]] = PatientStatus(item[0], False, item[1], item[0])
@@ -185,22 +192,24 @@ class ConceptExtractor(object):
 
 
 class CEWithoutMM(object):
-    def __init__(self, List_route, neg_res = None):
+    def __init__(self, SS_List_route, Int_List_route, AllinOne_SS = None,\
+     AllinOne_Int = None, neg_res = None, WDistance = False, aio_only = False):
+        '''
+        build mapping w/without score
+        store neg res
+        '''
         # stop words
         stop_words = set(stopwords.words('english'))
         stop_words.update(['zero','one','two','three','four','five','six','seven','eight','nine','ten','may','also','across','among','beside','however','yet','within','h','c']) 
         self.re_stop_words = re.compile(r"\b(" + "|".join(stop_words) + ")\\W", re.I)
         # table generation
+        self.WDistance = WDistance
         self.seeds = list()
-        self.mapping = collections.defaultdict(list)
+        self.inters = list()
+        self.SS_mapping = collections.defaultdict(list)
+        self.Int_mapping = collections.defaultdict(list)
         self.neg_res = collections.defaultdict(dict)
-        fo = open(List_route)
-        for line in fo:
-            temp = line.strip('\r\n').strip().split('\t')
-            self.seeds.append(temp[0])
-            for i in temp[:25]:
-                self.mapping[i].append(temp[0])
-        fo.close()
+        # record neg res
         if neg_res:
             fo = open(neg_res)
             lines = [line.strip('\r\n').lower().split('\t') for line in fo]
@@ -210,6 +219,77 @@ class CEWithoutMM(object):
                 else:
                     self.neg_res[int(item[0][10:])][item[1]] = None
         fo.close()
+        # allinone only
+        if aio_only:
+            fo = open(SS_List_route)
+            for line in fo:
+                temp = line.strip('\r\n').strip().split('\t')
+                self.seeds.append(temp[0])
+            fo.close()
+            fo = open(Int_List_route)
+            for line in fo:
+                temp = line.strip('\r\n').strip().split('\t')
+                self.inters.append(temp[0])
+            fo.close()
+            
+            df_ss = pd.read_excel(AllinOne_SS, header = None)
+            for row in df_ss.iterrows():
+                self.SS_mapping[row[1][1]].append(row[1][2])
+            df_int = pd.read_excel(AllinOne_Int, header = None)
+            for row in df_int.iterrows():
+                self.Int_mapping[row[1][1].lower()].append(row[1][2])
+            return
+            
+        # build ss mapping
+        fo = open(SS_List_route)
+        if AllinOne_SS: df = pd.read_excel(AllinOne_SS, header = None)
+        if self.WDistance:
+            for line in fo:
+                temp = line.strip('\r\n').strip().split('\t')
+                self.seeds.append(temp[0])
+                for i in temp[1:]:
+                    term, score = i.split(',')
+                    self.SS_mapping[term].append((float(score), temp[0]))
+                self.SS_mapping[temp[0]].append((1., temp[0]))
+            if AllinOne_SS:
+                for row in df.iterrows():
+                    self.SS_mapping[row[1][1]].append((float(row[1][3]), row[1][2]))
+        else:
+            for line in fo:
+                temp = line.strip('\r\n').strip().split('\t')
+                self.seeds.append(temp[0])
+                for i in temp:
+                    self.SS_mapping[i].append(temp[0])
+            if AllinOne_SS:
+                for row in df.iterrows():
+                    self.SS_mapping[row[1][1]].append(row[1][2])
+        fo.close()
+        # build inter mapping
+        fo = open(Int_List_route)
+        if AllinOne_Int: df = pd.read_excel(AllinOne_Int, header = None)
+        if self.WDistance:
+            for line in fo:
+                temp = line.strip('\r\n').strip().split('\t')
+                self.inters.append(temp[0])
+                for i in temp[1:]:
+                    term, score = i.split(',')
+                    self.Int_mapping[term].append((float(score), temp[0]))
+                self.Int_mapping[temp[0]].append((1., temp[0]))
+            if AllinOne_Int:
+                for row in df.iterrows():
+                    self.Int_mapping[row[1][1].lower()].append((float(row[1][3]), row[1][2]))
+        else:
+            for line in fo:
+                temp = line.strip('\r\n').strip().split('\t')
+                self.inters.append(temp[0])
+                for i in temp:
+                    self.Int_mapping[i].append(temp[0])
+            if AllinOne_Int:
+                for row in df.iterrows():
+                    self.Int_mapping[row[1][1].lower()].append(row[1][2])
+        fo.close()
+        return
+        
                 
     def StatusInit(self):
         '''
@@ -222,6 +302,10 @@ class CEWithoutMM(object):
                 self.Status[item] = PatientStatus(item, True)
             else:
                 self.Status[item] = PatientStatus(item, False)
+        
+        self.Interventions = dict()
+        for item in self.inters:
+            self.Interventions[item] = PatientStatus(item, False)
                 
     def SpecificInit(self, item):
         '''
@@ -252,7 +336,7 @@ class CEWithoutMM(object):
                 self.Status[item[0]] = PatientStatus(item[0], True, item[1], item[0])
             self.Status[item[0]].score = 1000.
             self.Status[item[0]].tick = 1
-        
+                    
     
     def cleanPunc(self, sentence):
         cleaned = re.sub(r'[?|!|\'|"|#]',r'',sentence)
@@ -273,103 +357,35 @@ class CEWithoutMM(object):
     def removeStopWords(self, sentence):
         return self.re_stop_words.sub(" ", sentence)
         
+        
     def CE(self, text, tick_num, case_num = 0):
-        '''
-        naive version: ignore the value field
-        score: always 1000.
-        neg: coreNLP
-        '''
-        sent_tokenize_list = sent_tokenize(text)
-        for sent in sent_tokenize_list:
-            sent = sent.strip().lower()
+        for sent in self.neg_res[case_num]:
             if len(sent) == 0:
                 continue
-            txt = self.cleanPunc(sent)
-            txt = self.keepAlpha(txt)
-            txt = self.removeStopWords(txt)
-            words = txt.split()
-            bigram = ngrams(words,2)
-            trigram = ngrams(words,3)
-            for i in words:
-                if i in self.mapping:
-                    try:
-                        if not self.neg_res:
-                            neg = negation_detection.predict(sent, i)
-                            if neg != None:
-                                for j in self.mapping[i]:
-                                    self.Status[j].bianry = neg
-                                    self.Status[j].score = 1000.
-                                    self.Status[j].content = i
-                                    self.Status[j].tick = tick_num
+            for key in self.SS_mapping:
+                if sent.find(key) >= 0:
+                    # check neg results, if term is included, set neg as False, else True
+                    neg = not (self.neg_res[case_num][sent] and (''.join(self.neg_res[case_num][sent]).find(key) >= 0))                    
+                    for j in self.SS_mapping[key]:
+                        if not self.WDistance:
+                            if j in self.Status:
+                                self.Status[j].binary = neg
+                                self.Status[j].score = 1000.
+                                self.Status[j].content = key
+                                self.Status[j].value = key
+                                self.Status[j].tick = tick_num
                         else:
-                            if self.neg_res[case_num][sent]:
-                                neg = True
-                                # check neg results, if term is included, set neg as False, else True
-                                for str_ in self.neg_res[case_num][sent]:
-                                    if i in str_:
-                                        neg = False
-                                for j in self.mapping[i]:
-                                    self.Status[j].binary = neg
-                                    self.Status[j].score = 1000.
-                                    self.Status[j].content = i
-                                    self.Status[j].tick = tick_num
-                    except:
-                        continue
-                            
-            for i in bigram:
-                temp = ' '.join(i)
-                if temp in self.mapping:
-                    try:
-                        if not self.neg_res:
-                            neg = negation_detection.predict(sent, temp)
-                            if neg != None:
-                                for j in self.mapping[temp]:
-                                    self.Status[j].bianry = neg
-                                    self.Status[j].score = 1000.
-                                    self.Status[j].content = temp
-                                    self.Status[j].tick = tick_num
-                        else:
-                            if self.neg_res[case_num][sent]:
-                                neg = True
-                                # check neg results, if term is included, set neg as False, else True
-                                for str_ in self.neg_res[case_num][sent]:
-                                    if temp in str_:
-                                        neg = False
-                                for j in self.mapping[temp]:
-                                    self.Status[j].binary = neg
-                                    self.Status[j].score = 1000.
-                                    self.Status[j].content = temp
-                                    self.Status[j].tick = tick_num
-                    except:
-                        continue
-                            
-            for i in trigram:
-                temp = ' '.join(i)
-                if temp in self.mapping:
-                    try:
-                        if not self.neg_res:
-                            neg = negation_detection.predict(sent, temp)
-                            if neg != None:
-                                for j in self.mapping[temp]:
-                                    self.Status[j].bianry = neg
-                                    self.Status[j].score = 1000.
-                                    self.Status[j].content = temp
-                                    self.Status[j].tick = tick_num
-                        else:
-                            if self.neg_res[case_num][sent]:
-                                neg = True
-                                # check neg results, if term is included, set neg as False, else True
-                                for str_ in self.neg_res[case_num][sent]:
-                                    if temp in str_:
-                                        neg = False
-                                for j in self.mapping[temp]:
-                                    self.Status[j].binary = neg
-                                    self.Status[j].score = 1000.
-                                    self.Status[j].content = temp
-                                    self.Status[j].tick = tick_num
-                    except:
-                        continue
-        
+                            if j[1] in self.Status:
+                              #  print j[1], neg
+                                self.Status[j[1]].binary = neg
+                               # print self.Status[j[1]].binary
+                                self.Status[j[1]].score = j[0] * 1000.
+                                self.Status[j[1]].content = key
+                                self.Status[j[1]].value = key
+                                self.Status[j[1]].tick = tick_num
+                               # print self.Status[j[1]].binary
+      #  print "------------------CE----------------------"
+                                    
         
     def DisplayStatus(self):
         for item in self.Status:
@@ -378,5 +394,6 @@ class CEWithoutMM(object):
                 str(self.Status[item].value)+';'+self.Status[item].content+';'+\
                 str(self.Status[item].score)+';'+str(self.Status[item].tick)+')'
                 print content
+        print "------------------------------------------------"
         
                        
