@@ -71,6 +71,7 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         self.vce.StatusInit()
         if self.inC:
             self.vce.ConceptWrapper(self.inC)
+	# The list of vital signas we support (from RAA data)
         pool = ['Pulse', 'Resp', 'BP', 'GCS', 'Glucose', 'SPO2', 'Pain', 'EKG']
         for item in pool:
             self.vce.SpecificInit(item)
