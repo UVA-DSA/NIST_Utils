@@ -29,10 +29,10 @@ class PROTOCOLi_Action(py_trees.behaviour.Behaviour):
 # behaviors in framework
 class InformationGathering(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'Information Extraction',\
-    slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
-    vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
-    exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
-    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", inC = None):
+    slist = "./concept_list(s&s)_revised.csv",\
+    vlist = "./Concept_List_1.csv",\
+    exlist = "./CLfromVt.csv",\
+    intlist = "./concept_list(interventions).csv", inC = None):
         super(InformationGathering, self).__init__(name)
         self.slist = slist
         self.vlist = vlist
