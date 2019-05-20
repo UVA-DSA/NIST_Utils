@@ -1,6 +1,5 @@
 '''
-To map from RAA data to standard format. 
-Dictionaries of values for interventions and symptoms. 
+The main file for creation and execution of behavior trees
 '''
 
 import py_trees
@@ -26,6 +25,10 @@ from sklearn.metrics import accuracy_score
 from ranking_func import rank
 from tqdm import tqdm as tqdm
 
+'''
+To map from RAA data to standard format. 
+Dictionaries of values for interventions and symptoms. 
+'''
 # param
 intermapping= {
     '12-lead ecg':['cardiac monitor'],
