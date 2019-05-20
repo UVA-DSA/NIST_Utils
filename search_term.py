@@ -11,6 +11,11 @@ import requests
 import json
 import argparse
 
+'''
+string: term to be searched
+page limit: number of results (25 per page)
+check: if true, it will also show the preferred name.
+'''
 def search_term(string, page_limit = 2, check = False):
     apikey = '6119ca85-39ff-4649-aa79-6c1b1d281a02'
     version = '2018AA'
