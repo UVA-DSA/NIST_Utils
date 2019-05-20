@@ -381,7 +381,7 @@ class IG(py_trees.behaviour.Behaviour):
         return py_trees.Status.SUCCESS
         
         
-               
+# To vectroize the list of required Signs and Symptoms for each protocol               
 class Vectorize(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'Vectorize', protocols = '/Users/sileshu/Desktop/BT/ODEMSA_Protocols_weighted.xlsx'):
         super(Vectorize, self).__init__(name)
@@ -443,6 +443,8 @@ class Vectorize(py_trees.behaviour.Behaviour):
         blackboard.candi,blackboard.pos = rank(blackboard.ranking)[0],rank(blackboard.ranking)[1]
         return py_trees.Status.SUCCESS
 
+# To set flags for each protocol
+# To indicate whether it should be executed and also pass the protocol confidence score for confidence propagation 
 class ProtocolSelector(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'Protocol Selector'):
         super(ProtocolSelector, self).__init__(name)
