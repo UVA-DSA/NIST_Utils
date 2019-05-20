@@ -12,6 +12,7 @@ import json
 import argparse
 
 '''
+This method is called only once to generate the concept_list.csv files that are used by the concept extractor. It returns a list of CUIs for each seed term in our concept list.
 string: term to be searched
 page limit: number of results (25 per page)
 check: if true, it will also show the preferred name.
