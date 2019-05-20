@@ -1,3 +1,8 @@
+'''
+To map from RAA data to standard format. 
+Dictionaries of values for interventions and symptoms. 
+'''
+
 import py_trees
 import behaviours as be
 from py_trees.blackboard import Blackboard
