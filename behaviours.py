@@ -57,13 +57,16 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         '''
         vcl = pd.read_csv(self.exlist)
         blackboard = Blackboard()
+	# Signs and Symptoms Concept Extractor
         self.sce = CE.ConceptExtractor(self.slist)
         self.sce.StatusInit()
         for item in vcl:
             self.sce.SpecificInit(item)
+	# Vital Signs Concept Extractor
         self.vce = CE.ConceptExtractor(self.vlist)
         #self.vce.StatusInit()
-        self.ice = CE.ConceptExtractor(self.intlist)
+        # Interventions Concept Extractor
+	self.ice = CE.ConceptExtractor(self.intlist)
         self.ice.StatusInit()
         self.vce.StatusInit()
         if self.inC:
