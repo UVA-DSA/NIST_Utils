@@ -623,6 +623,7 @@ class Overdose_Checker(py_trees.behaviour.Behaviour):
         
 # protocols
 # Each protocol has an Action class
+# TODO: Generalize the confidence propagation using a generic method to be called by all nodes
 class ChestPain(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'ChestPain'):
         super(ChestPain, self).__init__(name)
@@ -630,9 +631,10 @@ class ChestPain(py_trees.behaviour.Behaviour):
     
     def update(self):
         blackboard = Blackboard()
+	# posi = Normalized confidence score (dervied from cosine similarity) for protocol indicated by key
         self.posi = blackboard.protocol_flag[self.key][1]
         if self.posi == 0:
-            return py_trees.Status.SUCCESS
+            return py_trees.Status.SUCCESS  #might be better to return FAILURE?
         if blackboard.Signs['hypoxemia'].binary:
             blackboard.feedback['oxygen'] += self.posi * blackboard.Signs['hypoxemia'].score / 1000.
         blackboard.feedback['cardiac monitor'] += self.posi
