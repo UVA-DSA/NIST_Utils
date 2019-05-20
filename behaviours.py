@@ -71,7 +71,7 @@ class InformationGathering(py_trees.behaviour.Behaviour):
         self.vce.StatusInit()
         if self.inC:
             self.vce.ConceptWrapper(self.inC)
-	# The list of vital signas we support (from RAA data)
+	# The list of vital signs we support (from RAA data)
         pool = ['Pulse', 'Resp', 'BP', 'GCS', 'Glucose', 'SPO2', 'Pain', 'EKG']
         for item in pool:
             self.vce.SpecificInit(item)
@@ -83,6 +83,7 @@ class InformationGathering(py_trees.behaviour.Behaviour):
     
     def Vital2Symptom(self):
         '''
+	Rules for checking the values of vitals and transform them into signs and symptoms.
         Pulse-85  tachy > 100 extreme tachy >150 bradicardia <= 50
         Resp-16  8 - 24 fast slow normal
         BP-164/101  hyper age + 100 hypo < 70 normal mbp =  (sbp + 2*dbp)/3 
