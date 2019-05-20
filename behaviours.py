@@ -1,3 +1,7 @@
+'''
+The structure of tree (leaves, nodes) are defined here.
+'''
+
 import py_trees
 from pandas import Series, DataFrame
 import pandas as pd
