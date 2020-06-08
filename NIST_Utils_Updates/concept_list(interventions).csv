@@ -1,8 +1,10 @@
 Required Concept,CUI,Preferred Name
-glucagon,C0017687,Glucagon
+glucagon,C0017687,glucagon
 ,C0337437,Glucagon measurement
 ,C0772088,"glucagon, human"
+,C0876232,glucagon (rDNA)
 ,C1333664,GCG gene
+,C5200964,Glucagon [Mass or Moles/volume] in Serum or Plasma
 ,C0030280,Structure of alpha Cell of islet
 ,C0043578,"glucagon, N(alpha)-trinitrophenyl-His(1)-homo-Arg(12)-"
 ,C0061352,Glucagon Receptor
@@ -19,51 +21,51 @@ glucagon,C0017687,Glucagon
 ,C0492444,"RADIOIMMUNOASSAY, GLUCAGON"
 ,C0494303,Increased secretion of glucagon (finding)
 ,C0544376,Glucagon Injectable Product
-,C0571580,Glucagon allergy
+,C0571580,Allergy to glucagon
 ,C0573690,Glucagon overdose
 ,C0591570,Glucagon Novo
-,C0617735,"glucagon, di-(delta-(5-nitro-2-pyrimidyl)Orn)(17,18)-"
-,C0624870,"glucagon, carboxy-Me-Met(27)-"
-epinephrine,C0014563,Epinephrine
+epinephrine,C0014563,epinephrine
 ,C0201998,Epinephrine measurement
 ,C0001636,epinephrine hydrochloride
 ,C0026454,Monoamine Oxidase
 ,C0034783,Adrenergic Receptor
-,C0058415,Dipivefrin
+,C0058415,dipivefrin
 ,C0059445,epinephrine cyclase
 ,C0059446,epinephrine sulfate
 ,C0059447,epinephryl borate
 ,C0082449,epinephrine glucuronide
 ,C0116337,epinephrine sulfoconjugate
-,C0205758,Racepinephrine
+,C0205758,racepinephrine
 ,C0271747,Epinephrine deficiency
 ,C0274715,Poisoning by epinephrine
 ,C0359949,Epinephrine / Lidocaine
 ,C0359953,Bupivacaine / Epinephrine
 ,C0359957,Cocaine / Epinephrine
-,C0363599,Epinephrine^supine:MCnc:Pt:Plas:Qn
+,C0363599,EPINEPHrine^supine:MCnc:Pt:Plas:Qn
 ,C0428371,Urine epinephrine measurement
 ,C0521932,Epinephrine Acetate
 ,C0544333,Epinephrine Injectable Product
 ,C0677669,cisplatin-epinephrine therapeutic implant
 ,C0700536,epinephrine bitartrate
-,C0717588,Epinephrine + chlorpheniramine
+,C0717588,Chlorpheniramine- and epinephrine-containing product
 ,C0717745,EPINEPHrine ophthalmic
-nitroglycerin,C0017887,Nitroglycerin
+nitroglycerin,C0017887,nitroglycerin
 ,C0274735,Poisoning by nitroglycerin
 ,C0336694,Explosive nitroglycerin
+,C0571980,Allergy to nitroglycerin
 ,C0668116,nitroglycerin reductase
 ,C0699222,Nitroglycerin Transdermal System
 ,C0939706,Nitroglycerin ER
 ,C1154908,nitroglycerin metabolic process
+,C1248486,Nitroglycerin Topical Ointment
 ,C1266654,Nitroglycerin measurement
 ,C1319419,Nitroglycerin prophylaxis
-,C1445777,Transdermal glyceryl trinitrate
 ,C1562125,nitroglycerin 2.5mg
 ,C2193899,Caffeine / Nitroglycerin
 ,C3214209,Nitroglycerin Pill
 ,C4235702,response to nitroglycerin
 ,C4307250,Nitroglycerin Injection
+,C5203475,Nitroglycerin Liquid Injection
 ,C0979029,Nitroglycerin 2.5 MG Extended Release Oral Capsule
 ,C0979035,Nitroglycerin 6.5 MG Extended Release Oral Capsule
 ,C0979038,Nitroglycerin 9 MG Extended Release Oral Capsule
@@ -72,15 +74,11 @@ nitroglycerin,C0017887,Nitroglycerin
 ,C0306997,Nitroglycerin Topical Ointment [Nitrol]
 ,C0493314,"CONTAINER, SUPPLEMENTARY NITROGLYCERIN"
 ,C0550737,Nitroglycerin:MCnc:Pt:Ser/Plas:Qn
-,C0571982,Modified release glyceryl trinitrate allergy
-,C0689779,Nitroglycerin 0.3 MG Sublingual Tablet
 transport,C0005528,Biological Transport
-,C0040756,transportation industry
-,C0150390,Patient Transport
+,C0040756,Transportation
 ,C0206243,Carrying
 ,C1317949,transport (device)
 ,C1519628,Molecular Transport
-,C1704649,Transport Device Component
 ,C1705822,Transfer Technique
 ,C3495449,Mobility aid
 ,C1550030,Remote control command - Transport To
@@ -99,65 +97,67 @@ transport,C0005528,Biological Transport
 ,C0036969,"Pasteurellosis, Pneumonic"
 ,C0037852,Sperm Transport
 ,C0040757,Transportation of Patients
-diazepam,C0012010,Diazepam
+,C0150390,Patient Transport
+,C0162585,Ion Transport
+diazepam,C0012010,diazepam
 ,C0202368,Diazepam measurement
+,C0365777,diazePAM:MCnc:Pt:Ser/Plas:Qn
 ,C0057738,Diazepam Binding Inhibitor
 ,C0205923,Benzodiazepine Receptor
 ,C0246215,pro-diazepam
 ,C0274678,Poisoning by diazepam
 ,C0338769,Diazepam dependence
 ,C0360115,Diazepam Oral Product
-,C0360116,Diazepam in parenteral dosage form
 ,C0360118,Diazepam Rectal Product
-,C0365777,Diazepam:MCnc:Pt:Ser/Plas:Qn
-,C0366443,Diazepam:Mass:Pt:Dose:Qn
-,C0570822,Diazepam allergy
+,C0365778,diazePAM:PrThr:Pt:Ser/Plas:Ord
+,C0366443,diazePAM:Mass:Pt:Dose:Qn
+,C0570822,Allergy to diazepam
 ,C0572995,Diazepam overdose
 ,C0719881,Diastat
 ,C0743194,DIAZEPAM TREATMENT
-,C0797871,Diazepam:SCnc:Pt:Ser/Plas:Qn
-,C0802328,Diazepam cutoff:MCnc:Pt:Urine:Qn:Screen
-,C0802329,Diazepam cutoff:MCnc:Pt:Urine:Qn:Confirm
+,C0797871,diazePAM:SCnc:Pt:Ser/Plas:Qn
+,C0799901,Diazepam+Nordiazepam:MCnc:Pt:Ser/Plas:Qn
+,C0802328,diazePAM cutoff:MCnc:Pt:Urine:Qn:Screen
+,C0802329,diazePAM cutoff:MCnc:Pt:Urine:Qn:Confirm
 ,C0804035,Diazepam+Nordiazepam:MCnc:Pt:Urine:Qn
-,C0805907,Diazepam cutoff
+,C0805907,diazePAM cutoff
 ,C0805908,Diazepam+Nordiazepam
-,C1323258,diazepam binding
-,C1347920,Diazepam Powder
-,C1368507,Diazepam Enema
-fentanyl,C0015846,Fentanyl
+,C1245827,Diazepam Oral Tablet
+,C1249939,Diazepam Oral Capsule
+fentanyl,C0015846,fentanyl
 ,C0524136,Fentanyl measurement
 ,C0060200,fentanyl isothiocyanate
 ,C0117480,Droperidol / Fentanyl
 ,C0366481,fentanyl:mass:point in time:dose med or substance:quantitative
-,C0546864,Fentanyl Citrate
+,C0546864,fentanyl citrate
 ,C0567598,Fentanyl poisoning
-,C0570532,Fentanyl allergy
+,C0570532,Allergy to fentanyl
 ,C0572088,Fentanyl overdose
+,C0944822,fentaNYL:PrThr:Pt:Ser/Plas:Ord
 ,C1329986,BUPIVACAINE/FENTANYL
 ,C1656695,Fentanyl / ropivacaine
-,C1714006,FENTANYL HYDROCHLORIDE
+,C1714006,fentanyl hydrochloride
 ,C1960518,Fentanyl dependence
 ,C2135485,exposure to fentanyl
 ,C2698398,BEMA Fentanyl
 ,C2726835,FentaNYL Matrix
 ,C2924363,Fentanyl+Norfentanyl
 ,C2926150,Fentanyl+Norfentanyl:PrThr:Pt:Urine:Ord:Screen
-,C2926151,Fentanyl/Creatinine:MRto:Pt:Urine:Qn
-,C2926152,Fentanyl/Creatinine
+,C2926151,fentaNYL/Creatinine:MRto:Pt:Urine:Qn
 ,C3203016,Fentanyl Crystal
 ,C3213451,Fentanyl Pill
 ,C3213452,Fentanyl Topical Product
 ,C3258905,Fentanyl+Norfentanyl:PrThr:Pt:Urine:Ord:Confirm
 ,C3652872,"fentanyl, combinations"
-midazolam,C0026056,Midazolam
-,C0524191,Midazolam Measurement
+midazolam,C0026056,midazolam
 ,C0366048,Midazolam:MCnc:Pt:Ser/Plas:Qn
+,C0524191,Midazolam Measurement
 ,C0366560,midazolam:mass:point in time:dose med or substance:quantitative
-,C0546872,Midazolam Maleate
+,C0546872,midazolam maleate
 ,C0568451,Midazolam poisoning
-,C0570821,Midazolam allergy
+,C0570821,Allergy to midazolam
 ,C0572991,Midazolam overdose
-,C0700457,Midazolam Hydrochloride
+,C0700457,midazolam hydrochloride
 ,C0798281,Midazolam:SCnc:Pt:Ser/Plas:Qn
 ,C0802460,Midazolam cutoff:MCnc:Pt:Urine:Qn:Screen
 ,C0802461,Midazolam cutoff:MCnc:Pt:Urine:Qn:Confirm
@@ -170,15 +170,14 @@ midazolam,C0026056,Midazolam
 ,C2923750,Midazolam:MCnt:Pt:Tiss:Qn:Confirm
 ,C2923975,Midazolam:MCnc:Pt:Bld:Qn
 ,C2923976,Midazolam:MCnc:Pt:Bld:Qn:Confirm
-,C3218989,Midazolam Pill
 ,C4051548,Midazolam Cartridge
 ,C4051556,Midazolam Injection
 ,C4483730,Midazolam/Creatinine:MRto:Pt:Urine:Qn:Confirm
+,C4483731,Midazolam/Creatinine
 normal saline,C0445115,Normal saline
 ,C0770272,dextrose 2.5 % in normal saline
 ,C1170437,Normal Saline Flush
 ,C1278442,Continuous infusion of normal saline
-,C1445714,Normal saline + potassium chloride
 ,C1725405,BD Normal Saline Flush
 ,C2020031,"normal saline, sterile"
 ,C2020032,sterile solutions normal saline 1000cc
@@ -190,7 +189,6 @@ normal saline,C0445115,Normal saline
 ,C2224514,normal saline 1000cc
 ,C3649220,enemas normal saline
 ,C0512623,Irrigate nasogastric tubes with normal saline
-,C1302134,Dextrose 5% in 0.2% Normal Saline
 ,C2020035,sterile solutions normal saline up to 5cc
 ,C2037898,surgical irrigation of cholecystostomy with normal saline
 ,C2037901,surgical irrigation of choledochostomy with normal saline
@@ -199,6 +197,8 @@ normal saline,C0445115,Normal saline
 ,C2037910,surgical irrigation of ileostomy with normal saline
 ,C2037913,surgical irrigation of jejunostomy with normal saline
 ,C3468232,bladder irrigation with ___ cc normal saline
+,C4065066,flood thoracotomy field with normal saline
+,C4282048,10 ML Sodium Chloride 9 MG/ML Injection
 encourage patient to relax,C0510902,Encourage the patient to relax
 ,C0510764,Encourage patient to deep breathe and relax during massage
 oral glucose,C1955477,Glucose (oral)
@@ -210,9 +210,7 @@ oral glucose,C1955477,Glucose (oral)
 ,C1252218,Glucose Oral Gel
 ,C1697262,Glucose Oral Gel [Dex4]
 ,C1847425,Abnormal oral glucose tolerance
-,C1877859,Glucose 30g Oral gel
 ,C1955128,glucose (oral challenge)
-,C2315494,Glucose in oral dosage form
 ,C2684476,Glucose 254 MG/ML Oral Solution
 ,C2830475,Impaired glucose tolerance (oral)
 ,C2938519,Glucose Oral Solution [Dex4]
@@ -226,6 +224,8 @@ oral glucose,C1955477,Glucose (oral)
 ,C3556827,Cholecalciferol / Glucose Oral Solution
 ,C3556888,Cholecalciferol / Glucose Oral Product
 ,C3643942,ReliOn Glucose Oral Product
+,C3853667,Glucose 0.774 MG/MG Oral Gel
+,C4018522,Glucose 0.45 MG/MG Oral Gel
 recovery position,C0150435,Semiprone position
 ,C2919251,Positioning subject in recovery position
 supine position,C0038846,Supine Position
@@ -233,9 +233,9 @@ supine position,C0038846,Supine Position
 ,C2051534,patient in supine position for procedure
 ,C2094324,nursing care: patient positioning maintain supine position
 ,C2223886,normal pregnancy delivery with patient returned to supine position
+,C4712081,Place the patient in a supine position
 ,C1301698,Patient in supine position with hip support
 ,C2037434,supine position test of talus of ankle
-,C0810873,Conduct exam while patient is in upright then supine position
 ,C2037428,supine position test of head of talus of left ankle
 ,C2037431,supine position test of head of talus of right ankle
 ,C2088493,inability to arise from supine to sitting position
@@ -243,16 +243,16 @@ supine position,C0038846,Supine Position
 ,C2222345,moving from supine to sitting position in bed independently
 ,C2222353,moving from sitting to supine position in bed independently
 ,C2223887,normal pregnancy delivery with patient returned to supine position and returned to room
-,C0514294,"Place in the designated surgical position (e.g., supine, prone, lateral chest, or lithotomy)"
-,C0514323,"Place patient in supine position with legs elevated to increase preload, as appropriate"
-,C0514385,Position patient supine for insertion with arm at a 90-degree angle to body
+,C4710031,Conduct examination when patient is in upright then supine position
+,C4711897,"Place patient in supine position, minimizing orthostatic changes"
+,C4714361,Place patient in either a comfortable sitting or supine position
+,C0514323,"Place patient in a supine position with legs elevated to increase preload, as appropriate"
 ,C2037429,supine position test of head of talus of left ankle showing lateral bulge
 ,C2037430,supine position test of head of talus of left ankle showing medial bulge
 ,C2037432,supine position test of head of talus of right ankle showing lateral bulge
 ,C2037433,supine position test of head of talus of right ankle showing medial bulge
 ,C2115728,pain at end of range of movement with thoracolumbar spine extension in supine position
 ,C2115729,pain at initiation of movement with thoracolumbar spine extension in supine position
-,C2115730,pain during movement with thoracolumbar spine extension in supine position
 narcan,C0684237,Narcan
 ,C0306927,Naloxone Injectable Solution [Narcan]
 ,C0543240,Naloxone Hydrochloride 1 MG/ML Injectable Solution [Narcan]
@@ -270,44 +270,48 @@ narcan,C0684237,Narcan
 ,C0358449,1 ML Naloxone Hydrochloride 0.4 MG/ML Cartridge
 ,C0774388,Naloxone Hydrochloride 0.4 MG/ML Injectable Solution
 ,C3887728,1 ML Naloxone Hydrochloride 0.4 MG/ML Injection
-albuterol,C0001927,Albuterol
-,C0772501,Levalbuterol
+albuterol,C0001927,albuterol
+,C0772501,levalbuterol
 ,C1655019,albuterol (as albuterol sulfate)
-,C0354688,Inhaled albuterol preparation
-,C0543495,Albuterol Sulfate
+,C0543495,albuterol sulfate
+,C0570955,Allergy to albuterol
 ,C0717386,Albuterol / Ipratropium
 ,C0740857,albuterol treatment
+,C1244563,Albuterol Oral Tablet
 ,C1266310,Albuterol measurement
-,C1828451,Albuterol / Beclomethasone
+,C1828451,"albuterol, beclomethasone drug combinations"
 ,C2194286,Albuterol / Guaifenesin
-,C2928647,Albuterol / Cromolyn
 ,C2929310,Albuterol / Ambroxol
 ,C2957898,racemic albuterol
 ,C3209071,Albuterol Pill
 ,C0687801,Albuterol 2 MG Oral Tablet
 ,C0687804,Albuterol 4 MG Oral Tablet
-,C0354672,Albuterol in oral dosage form
-,C0354681,Albuterol in parenteral dosage form
-,C0354696,Albuterol 0.4 MG/ACTUAT Inhalant Powder
-,C0358708,Albuterol and cromoglicate sodium
+,C0794471,Albuterol 0.1 MG Inhalation Powder
 ,C0484882,Albuterol:MCnc:Pt:Ser/Plas:Qn
-,C0687802,Albuterol 0.4 MG/ML Oral Solution
-,C0693642,Albuterol 0.5 MG/ML Injectable Solution
 ,C0718656,Arm-A-Med Albuterol Sulfate
 ,C0778291,ALBUTEROL SO4 PWDR
+,C0785994,Albuterol 5 MG/ML Inhalation Solution
+,C0945777,Albuterol:PrThr:Pt:Urine:Ord
+,C0983069,Albuterol 4 MG
+,C1124739,Albuterol 0.09 MG/ACTUAT
+,C1124741,Albuterol 2 MG
 cpap,C0199451,Continuous Positive Airway Pressure
 ,C1424863,CENPJ gene
 ,C0180105,Continuing positive airway pressure unit
 ,C0454518,Intermittent CPAP
 ,C0628147,N-(1(S)-carboxy-(4-hydroxy-3-iodophenyl)ethyl)-alanylproline
 ,C1507544,Pressure.continuous positive airway:Pres:Pt:Respiratory system:Qn
+,C2359935,Continuous positive airway pressure attachment:Finding:Point in time:^Patient:Document
 ,C3665969,Nasal CPAP
 ,C4534471,BiPAP/CPAP
+,C5208671,CPAP Masks
+,C5208761,CPAP Interfaces
 ,C0374380,"Continuous positive airway pressure ventilation (CPAP), initiation and management"
 ,C0179576,CPAP nasal oxygen cannula
+,C1144985,Full-Face CPAP Masks
 ,C1309662,"CENPJ protein, human"
 ,C1568469,3-((5-(6-((3-chlorophenyl)amino)pyrazinyl)-3-pyridinyl)amino)-1-propanol
-,C1959403,"DSas-4 protein, Drosophila"
+,C1959403,"Sas-4 protein, Drosophila"
 ,C2135601,has CPAP at home
 ,C2234350,newborn facial CPAP
 ,C2923270,BIPAP &or CPAP setting:Find:Pt:Ventilator:Ord
@@ -316,22 +320,17 @@ cpap,C0199451,Continuous Positive Airway Pressure
 ,C3481644,Pressure.continuous positive airway:Pres:24H^max:Respiratory system:Qn
 ,C3482023,Pressure.continuous positive airway:Pres:24H^median:Respiratory system:Qn
 ,C3657516,"Cenpj protein, mouse"
-,C3836086,rnax provide cpap machine
-,C3845201,Non-invasive ventilation (CPAP)
-,C3849840,"cenpj protein, zebrafish"
-,C3863902,CPAP via nasal prongs
 bag valve mask ventilation,C1960845,Bag valve mask ventilation
-morphine,C0026549,Morphine
+morphine,C0026549,morphine
 ,C2698261,Morphine Measurement
-,C0279996,morphine and morphine derivative
-,C0009214,Codeine
-,C0011892,Heroin
-,C0015109,Ethylmorphine
+,C0009214,codeine
+,C0011892,heroin
+,C0015109,ethylmorphine
 ,C0026551,Morphine Chloride
 ,C0026552,Morphine Dependence
 ,C0026553,Morphine Derivatives Including Cocaine
 ,C0066812,morphine 6-dehydrogenase
-,C0066814,Morphine Sulfate
+,C0066814,morphine sulfate
 ,C0068699,nicomorphine
 ,C0070108,paregoric
 ,C0086223,Morphine Receptor
@@ -340,8 +339,9 @@ morphine,C0026549,Morphine
 ,C0242000,morphine use
 ,C0260022,Morphine habit
 ,C0274614,Poisoning by morphine
-,C0358789,Kaolin+morphine
+,C0358789,Kaolin- and morphine-containing product
 ,C0360457,Morphine Oral Product
+,C0366053,Morphine:PrThr:Pt:Ser/Plas:Ord
 ,C0366054,Morphine:MCnc:Pt:Ser/Plas:Qn
 ,C0366563,morphine dose
 ,C0385247,morphine methiodide
@@ -361,7 +361,6 @@ metered dose inhaler,C0418991,Metered dose inhaler therapy
 ,C2344604,ciclesonide Metered Dose Inhaler
 ,C2346381,pirbuterol Metered Dose Inhaler
 ,C2586369,flunisolide Metered Dose Inhaler
-,C2912242,metaproterenol Metered Dose Inhaler
 ,C3820273,Mometasone Metered Dose Inhaler
 ,C3848957,olodaterol Metered Dose Inhaler
 ,C3854314,Metered dose inhaler (physical object)
@@ -371,13 +370,14 @@ metered dose inhaler,C0418991,Metered dose inhaler therapy
 ,C1967732,Budesonide / formoterol Metered Dose Inhaler
 ,C1967855,fluticasone Metered Dose Inhaler [Flovent]
 ,C1967872,Ipratropium Metered Dose Inhaler [Atrovent]
+,C1967881,Levalbuterol Metered Dose Inhaler [Xopenex]
 physical restraint,C0035260,Physical Restraint (procedure)
+,C0337184,Physical restraint equipment (device)
 ,C0182986,Ankle restraint
 ,C0182987,Arm restraint
 ,C0182996,Wrist restraint
 ,C0204738,Placing restraint
 ,C0337183,PHYSICAL RESTRAINT EQUIPMENT AND STRUCTURES
-,C0337184,Physical restraint equipment (device)
 ,C0337187,Physical restraint structure
 ,C0418446,Assault by physical restraint
 ,C0418449,Assault by physical restraint with handcuffs
@@ -390,16 +390,16 @@ physical restraint,C0035260,Physical Restraint (procedure)
 ,C2921308,Physical restraint status
 ,C3651006,Implementing Physical Restraint Regime
 ,C4041184,Implementation of physical restraint regime
+,C4764178,Chemical and Physical Restraint
 ,C0182994,Wheelchair occupant restraint
 ,C0418448,Assault by physical restraint with rope or cord
 ,C0418450,Assault by physical restraint with adhesive tape
 ,C3880090,Infant bed restraint
 ,C3880863,Adult limb restraint
-,C2708184,Physical restraints used in bed - trunk restraint:Find:Pt:^Patient:Ord:MDSv3
 nasopharyngeal airway,C0150683,"Artificial Airways, Nasopharyngeal"
 ,C0178093,Nasopharyngeal airway insertion
 ,C0240457,NASOPHARYNGEAL AIRWAY OBSTRUCTION
-,C2922479,rnox insert nasopharyngeal airway
+,C2922479,rnax insert nasopharyngeal airway
 ,C3468998,nasopharyngeal airway device (___ fr)
 ,C3468999,nasopharyngeal airway device inserted
 ,C3469000,nasopharyngeal airway device removed
@@ -418,23 +418,28 @@ capnography,C0376529,Capnography
 ,C1610575,"Physiologic Monitor Modules, Capnography"
 ,C4304484,Capnography oxygen mask
 ,C4518119,Capnography sampling adaptor
-suction the oropharynx,C0514926,"Provide mouth care and suction oropharynx, as appropriate"
+,C4714349,Monitor expired carbon dioxide (capnography)
+suction the oropharynx,C4709567,Suction mouth and oropharynx
 ,C0515918,Suction the oropharynx after completion of tracheal suctioning
-,C0515919,Suction the oropharynx and secretions from the top of the tube cuff before deflating cuff
-ondansetron,C0061851,Ondansetron
-,C0700478,Ondansetron Hydrochloride
-,C0935854,dexamethasone/ondansetron
+,C4709725,Suction the oropharynx and secretions from the top of the tube cuff before deflating the cuff
+ondansetron,C0061851,ondansetron
+,C0700478,ondansetron hydrochloride
+,C0935854,Dexamethasone/Ondansetron
+,C1247210,Ondansetron Oral Tablet
 ,C3215388,Ondansetron Pill
 ,C4083636,Ondansetron Injection
+,C5203524,Ondansetron Liquid Injection
+,C0355419,Ondansetron 4 MG Disintegrating Oral Tablet
 ,C0689845,Ondansetron 4 MG Oral Tablet
 ,C0979118,Ondansetron 8 MG Oral Tablet
+,C0979119,Ondansetron 8 MG Disintegrating Oral Tablet
+,C2920342,Ondansetron 8 MG Oral Film
+,C2920346,Ondansetron 4 MG Oral Film
 ,C0308189,Ondansetron Injectable Solution [Zofran]
-,C0355419,Ondansetron 4 MG Disintegrating Oral Tablet
 ,C0792503,Ondansetron 16 MG Rectal Suppository
 ,C0886673,"Ondansetron, (S)-Isomer"
 ,C0886674,"Ondansetron, (R)-Isomer"
 ,C0979116,Ondansetron 24 MG Oral Tablet
-,C0979119,Ondansetron 8 MG Disintegrating Oral Tablet
 ,C1123365,Ondansetron 2 MG/ML
 ,C1123366,Ondansetron 0.64 MG/ML
 ,C1123367,Ondansetron 4 MG
@@ -442,58 +447,54 @@ ondansetron,C0061851,Ondansetron
 ,C1125588,Ondansetron 0.8 MG/ML
 ,C1126040,Ondansetron 24 MG
 ,C1134857,Ondansetron 16 MG
-,C1238268,Ondansetron Oral Solution [Zofran]
-,C1242203,Ondansetron Oral Tablet [Zofran]
-,C1247208,Ondansetron Oral Solution
-,C1247209,Ondansetron Rectal Suppository
-dexamethasone,C0011777,Dexamethasone
-,C0011779,Dexamethasone Isonicotinate
+dexamethasone,C0011777,dexamethasone
+,C0011779,dexamethasone isonicotinate
 ,C0057590,dexamethasone 17-valerate
 ,C0057598,dexamethasone acetate
 ,C0057600,dexamethasone oxetanone
 ,C0057601,dexamethasone receptor
 ,C0057603,dexamethasone trimethyl acetate
 ,C0245678,dexamethasone dipropionate
-,C0281507,cyclophosphamide/dexamethasone
-,C0281561,dexamethasone/vincristine
-,C0304706,Dexamethasone ophthalmic preparation
+,C0281507,Cyclophosphamide/Dexamethasone
+,C0281561,Dexamethasone/Vincristine
+,C0304706,Dexamethasone-containing product in ocular dose form
 ,C0308803,dexamethasone injection
-,C0338234,dexamethasone/melphalan
-,C0338276,daunorubicin/dexamethasone
+,C0338234,Dexamethasone/Melphalan
+,C0338276,Daunorubicin/Dexamethasone
 ,C0360528,Oral form dexamethasone
-,C0360529,Dexamethasone in parenteral dosage form
 ,C0360531,Dexamethasone Topical Product
 ,C0380865,dexamethasone glucuronide
-,C0571611,Dexamethasone allergy
+,C0571611,Allergy to dexamethasone
 ,C0573709,Dexamethasone overdose
 ,C0614680,dexamethasone linoleate
-,C0678001,dexamethasone/metoclopramide
-,C0678002,dexamethasone/granisetron
-,C0701263,Sk-Dexamethasone
+,C0678001,Dexamethasone/Metoclopramide
+,C0678002,Dexamethasone/Granisetron
 ,C0717676,dexamethasone nasal
+,C0717678,Dexamethasone / Lidocaine
+,C0719817,Dexamethasone Intensol
 cardiac monitor,C0150496,Cardiac monitoring
 ,C0179608,Cardiac monitors
 ,C0204899,Cardiac monitor surveillance
 ,C0204900,Cardiac monitor removal
 ,C0493020,Fetal cardiac monitor
-,C0508482,Apply cardiac/apnea monitor
-,C0513332,Monitor for presence of cardiac arrhythmias
 ,C0513462,Monitor heart rate and rhythm
-,C0514308,"Place on a cardiac monitor, as appropriate"
 ,C0547250,Monitor for signs of cardiac decompensation.
 ,C1714885,Cardiac monitor interpretation:Impression/interpretation of study:Point in time:Heart:Narrative
 ,C1717655,Cardiac monitor interpretation
-,C1739247,"Attach cardiac monitor, as appropriate"
 ,C2825163,Cardiac Event Monitor
-,C2958525,rnox monitor cardiac care
-,C2958526,rnox monitor cardiac rehabilitation
+,C2958525,rnax cardiac care monitoring
+,C2958526,rnax monitor cardiac rehabilitation
 ,C3161612,code cart cardiac monitor
 ,C3646413,rnax apply cardiac monitor
 ,C3805086,Implantable cardiac monitor insertion
 ,C3879681,Implantable cardiac monitor
+,C4552203,Implantable cardiac monitor removal
+,C4710843,"Place on cardiac monitor, as appropriate"
+,C4711885,Place patient on a cardiac monitor
+,C4713462,Apply cardiac or apnea monitor
+,C4735828,subcutaneous cardiac rhythm monitor
+,C4760987,Implantable cardiac monitor replacement
 ,C0199626,Monitoring of cardiac output by thermodilution indicator
-,C0509134,Attach the cardiac monitor and determine the rhythm
-,C0513714,"Monitor respiratory, cardiac, and neurological status"
 ,C1609451,"Physiologic Monitor Modules, Cardiac Output"
 ,C2145542,transportation within facility with cardiac monitor
 geodon,C0939698,Geodon
@@ -513,37 +514,37 @@ geodon,C0939698,Geodon
 ,C3224621,Geodon Injectable Product
 ,C3224622,Geodon Oral Product
 ,C4060180,ziprasidone Injection [Geodon]
-ipratropium,C0027235,Ipratropium
-,C0570999,Ipratropium allergy
-,C0700580,Ipratropium Bromide
+ipratropium,C0027235,ipratropium
+,C0570999,Allergy to ipratropium
+,C0700580,ipratropium bromide
 ,C0717386,Albuterol / Ipratropium
 ,C0717868,ipratropium nasal
 ,C1271926,Ipratropium reversibility
-,C1827410,Fenoterol / Ipratropium
-,C3848550,Ipratropium cation
+,C1827410,"fenoterol, ipratropium drug combination"
+,C3848550,ipratropium cation
+,C4703917,Ipratropium ion
 ,C1995694,Ipratropium Bromide 0.021 MG/ACTUAT Metered Dose Nasal Spray
 ,C0569715,Ipratropium adverse reaction
-,C0704800,Ipratropium Bromide 0.021 MG/ACTUAT Nasal Spray
-,C0704801,Ipratropium Bromide 0.042 MG/ACTUAT Nasal Spray
 ,C0731409,Steri-Neb Ipratropium
 ,C0779674,Ipratropium Bromide Powder
-,C0791625,Ipratropium 0.04 MG/ACTUAT Inhalant Solution
+,C0791625,Ipratropium bromide 40micrograms inhaler
 ,C0887135,"Ipratropium Bromide, endo-Isomer"
-,C1131559,Ipratropium 0.04 MG/ACTUAT
-,C1235686,Ipratropium 0.5 MG/ACTUAT
-,C1244518,Ipratropium Nasal Spray
-,C1251504,Fenoterol / Ipratropium Inhalant Solution
-,C1251507,Ipratropium Inhalant Solution
-,C1251525,Albuterol / Ipratropium Inhalant Solution
-,C1253817,Ipratropium Inhalant Powder
 ,C1302121,Albuterol-Ipratropium Bromide
-,C1306119,Ipratropium 1.25 MG/ACTUAT
-oxygen,C0030054,Oxygen
+,C1321151,Ipratropium Bromide/ Albuterol Sulfate
+,C1330358,Ipratropium Bromide Nasal
+,C1330359,Ipratropium Bromide Novaplus
+,C1657190,Ipratropium Bromide Hydrous
+,C1967870,Ipratropium Metered Dose Inhaler
+,C2697443,Ipratropium bromide 20micrograms inhaler
+,C3209063,Albuterol / Ipratropium Inhalant Product
+,C3213013,Ipratropium Inhalant Product
+,C3213014,Ipratropium Nasal Product
+oxygen,C0030054,oxygen
 ,C0184633,Oxygen Therapy Care
 ,C1547125,Oxygen Equipment Location
-,C2359957,Oxygen attachment:Finding:Point in time:^Patient:Document
 ,C3656081,Oxygen saturation.preductal-oxygen saturation.postductal
 ,C3896642,Oxygen 15-labeled Oxygen
+,C4751530,Oxygen and oxygen compound
 ,C0003130,Anoxia
 ,C0030055,Oxygen Consumption
 ,C0030058,oxygen extraction
@@ -563,11 +564,11 @@ oxygen,C0030054,Oxygen
 ,C0182128,Oxygen Generators
 ,C0182129,Oxygen Meters
 ,C0182130,Oxygen Monitors
-magnesium sulfate,C0024480,Magnesium Sulfate
+magnesium sulfate,C0024480,magnesium sulfate
 ,C2927890,Magnesium Oxide / Magnesium Sulfate
 ,C3818960,magnesium carbonate & magnesium sulfate
 ,C2928724,Magnesium Sulfate / potassium sulfate / sodium sulfate
-,C0126780,MAGNESIUM LAURYL SULFATE
+,C0126780,magnesium lauryl sulfate
 ,C0133842,"2,2'-dithio-bis-pyridine-1-oxide magnesium sulfate"
 ,C0274758,Poisoning by magnesium sulfate
 ,C0349978,Magnesium Sulfate Powder
@@ -575,23 +576,23 @@ magnesium sulfate,C0024480,Magnesium Sulfate
 ,C0567835,Accidental magnesium sulfate poisoning
 ,C0567836,Intentional magnesium sulfate poisoning
 ,C0569446,Magnesium sulfate adverse reaction
-,C0570606,Magnesium sulfate allergy
+,C0570606,Allergy to magnesium sulfate
 ,C0572339,Magnesium sulfate overdose
 ,C0572340,Accidental magnesium sulfate overdose
 ,C0572341,Intentional magnesium sulfate overdose
 ,C0621907,potassium magnesium sulfate
 ,C0719845,Dextrose-Magnesium Sulfate
 ,C0721528,Magnesium Sulfate Injectable Product
-,C0772046,Magnesium sulfate heptahydrate
+,C0772046,magnesium sulfate heptahydrate
 ,C0773086,Magnesium Sulfate Crystal
 ,C0773863,Magnesium Sulfate Oral Granules
-,C1134327,Magnesium Sulfate 70 MG
-,C1246755,Magnesium Sulfate Injectable Solution
-,C1250422,Magnesium Sulfate Oral Solution
-dextrose,C0017725,Glucose
+,C1250693,Magnesium Sulfate Topical Ointment
+,C1572489,magnesium sulfate anhydrous
+,C1620342,magnesium oxide-zinc sulfate
+dextrose,C0017725,glucose
 ,C2034479,intravenous infusion of intravenous dextrose
 ,C0017734,dextrose monohydrate
-,C0359952,Bupivacaine and glucose
+,C0359952,BUPIVACAINE/DEXTROSE
 ,C0360665,Glucose / Sodium Chloride
 ,C0556133,Glucose intake
 ,C0719831,Dextrose (for TPN)
@@ -603,14 +604,14 @@ dextrose,C0017725,Glucose
 ,C0777489,Dextrose Granule
 ,C0985452,Glucose 50 MG/ML
 ,C0985453,Glucose 500 MG/ML
-,C1165353,Anhydrous Dextrose
-,C1165603,dextrose solution
+,C1165353,anhydrous dextrose
+,C1165603,Dextrose solution
 ,C1170214,DEXTROSE/DOPAMINE
 ,C1445695,ALCOHOL/DEXTROSE
 ,C1445734,DEXTROSE/THEOPHYLLINE
 ,C1445835,CEFOXITIN/DEXTROSE
 ,C1650394,Dextran in Dextrose
-,C1657537,Dextrose Hydrous
+,C1657537,dextrose hydrous
 ,C1660487,Plasmalyte In Dextrose
 ,C1827175,Caffeine / Glucose
 suction the nasopharynx,C0548067,Nasopharyngeal suction
@@ -642,7 +643,6 @@ endotracheal tube,C0336630,Endotracheal tube
 ,C0587274,RAE endotracheal tube
 bronchodilator,C0006280,Bronchodilator Agents
 ,C0354764,"BRONCHODILATORS,ANTICHOLINERGIC"
-,C0354772,Xanthine bronchodilators
 ,C0578554,Inhaled bronchodilator therapy
 ,C1874324,ANTITUSSIVE/BRONCHODILATOR
 ,C2599594,post bronchodilator
@@ -662,14 +662,15 @@ bronchodilator,C0006280,Bronchodilator Agents
 ,C0573320,Intentional bronchodilator preparations overdose
 ,C1532420,Reversibility trial by bronchodilator
 ,C1736641,Inhaled bronchodilator prescribed (COPD)
-,C2018742,post-bronchodilator spirometry
+,C2018742,Post bronchodilator spirometry
 ,C2018743,pre-bronchodilator spirometry
 ,C4304312,Inhaled bronchodilator not prescribed
-aspirin,C0004057,Aspirin
+,C4751313,Bronchodilator therapeutic role
+aspirin,C0004057,aspirin
 ,C1454756,N-acetyl-S-(alpha-methyl-4-(2-methylpropyl)benzeneacetyl)cysteine 4-(nitrooxy)butyl ester
 ,C3843719,Aspirin or aspirin-containing product
-,C0002370,Aluminum aspirin
-,C0004058,Aspirin allergy
+,C0002370,aluminum aspirin
+,C0004058,Allergy to aspirin
 ,C0004059,aspirin intolerance
 ,C0004060,Poisoning by aspirin
 ,C0050535,acetylsalicylic acid hydrolase

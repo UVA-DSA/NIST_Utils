@@ -51,7 +51,7 @@ class NLPutils(object):
 # For filtering junk
         self.non_tech_words = []
 
-        self.googlenews_model =  gensim.models.KeyedVectors.load_word2vec_format('/Users/sileshu/Downloads/GoogleNews-vectors-negative300.bin', binary=True)
+        self.googlenews_model =  gensim.models.KeyedVectors.load_word2vec_format('./GoogleNews-vectors-negative300.bin', binary=True)
         self.googlenews_model.syn0norm = self.googlenews_model.syn0
 
 # Tokenization

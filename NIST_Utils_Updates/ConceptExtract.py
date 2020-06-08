@@ -80,11 +80,13 @@ class ConceptExtractor(object):
         sent_text: a list of sent text
         mm: Path should be changed to MetaMap location.
         '''
-        mm = MetaMap.get_instance('/Users/sileshu/Downloads/public_mm/bin/metamap16',version = 2016)
+        mm = MetaMap.get_instance('./public_mm/bin/metamap16',version = 2016)
         self.concepts,_ = mm.extract_concepts(sent_text,word_sense_disambiguation=True,\
                                      ignore_stop_phrases=True)
-        self.scores,_ = mm.extract_concepts(sent_text,mmi_output=False,word_sense_disambiguation=True,\
-                                     ignore_stop_phrases=True)
+        #self.scores,_ = mm.extract_concepts(sent_text,mmi_output=False,word_sense_disambiguation=True,\
+        #                             ignore_stop_phrases=True) #TP#
+        self.scores,_ = mm.extract_concepts(sent_text, word_sense_disambiguation=True,\
+                                     ignore_stop_phrases=True) #TP#
                                      
     def ConceptWrapper(self,concepts):
         '''

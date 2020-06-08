@@ -185,18 +185,19 @@ class InformationGathering(py_trees.behaviour.Behaviour):
     def update(self):
         blackboard = Blackboard()
         self.sce.ConceptExtract(blackboard.text)
-        if blackboard.inC:
-            self.vce.ConceptWrapper(blackboard.inC)
+        #if blackboard.inC:
+            #self.vce.ConceptWrapper(blackboard.inC)
         blackboard.concepts = self.sce.concepts
         blackboard.confi = self.sce.scores
         self.sce.FirstExtract(blackboard.text, blackboard.tick_num)
-        self.Vital2Symptom()
-        blackboard.Signs = self.sce.Status
+       
         
-        #self.vce.concepts = blackboard.concepts
-        #self.vce.scores = self.sce.scores
-        #self.vce.FirstExtract(blackboard.text, blackboard.tick_num)
-        blackboard.Vitals = self.vce.Status
+        self.vce.concepts = blackboard.concepts
+        self.vce.scores = self.sce.scores
+        self.vce.FirstExtract(blackboard.text, blackboard.tick_num)
+        blackboard.Vitals = self.vce.Status 
+	self.Vital2Symptom()
+	blackboard.Signs = self.sce.Status        
         #self.sce.DisplayStatus()
         self.ice.concepts = blackboard.concepts
         self.ice.scores = self.sce.scores
@@ -210,12 +211,12 @@ class InformationGathering(py_trees.behaviour.Behaviour):
 # Does not call MetaMap, uses an offline negation list from NegEx
 class IG(py_trees.behaviour.Behaviour):
     def __init__(self, name = 'IG',\
-    slist = "/Users/sileshu/Desktop/BT/concept_list(s&s)_revised.csv",\
-    vlist = "/Users/sileshu/Desktop/BT/Concept_List_1.csv",\
-    exlist = "/Users/sileshu/Desktop/BT/CLfromVt.csv",\
-    intlist = "/Users/sileshu/Desktop/BT/concept_list(interventions).csv", \
-    aio_ss = "/Users/sileshu/Downloads/renewconceptlists/All_In_One_signs&symptoms.xlsx",\
-    aio_int = "/Users/sileshu/Downloads/renewconceptlists/All_In_One_interventions.xlsx",\
+    slist = "./concept_list(s&s)_revised.csv",\
+    vlist = "./Concept_List_1.csv",\
+    exlist = "./CLfromVt.csv",\
+    intlist = "./concept_list(interventions).csv", \
+    aio_ss = "./renewconceptlists/All_In_One_signs&symptoms.xlsx",\
+    aio_int = "./renewconceptlists/All_In_One_interventions.xlsx",\
     inC = None, neg_res = None, WDistance = False, aio_only = False):
         super(IG, self).__init__(name)
         self.slist = slist
@@ -383,7 +384,7 @@ class IG(py_trees.behaviour.Behaviour):
         
 # To vectroize the list of required Signs and Symptoms for each protocol               
 class Vectorize(py_trees.behaviour.Behaviour):
-    def __init__(self, name = 'Vectorize', protocols = '/Users/sileshu/Desktop/BT/ODEMSA_Protocols_weighted.xlsx'):
+    def __init__(self, name = 'Vectorize', protocols = './ODEMSA_Protocols_weighted.xlsx'):
         super(Vectorize, self).__init__(name)
         self.protocols = protocols
         

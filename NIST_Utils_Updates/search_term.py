@@ -18,8 +18,10 @@ page limit: number of results (25 per page)
 check: if true, it will also show the preferred name.
 '''
 def search_term(string, page_limit = 2, check = False):
-    apikey = '6119ca85-39ff-4649-aa79-6c1b1d281a02'
-    version = '2018AA'
+    #apikey = '6119ca85-39ff-4649-aa79-6c1b1d281a02' #TP#
+    apikey = 'b30cd58c-9d49-40fe-99ca-5b4807458c37'
+    #version = '2018AA'
+    version = 'current'
     string = string
     uri = "https://uts-ws.nlm.nih.gov"
     content_endpoint = "/rest/search/"+version
